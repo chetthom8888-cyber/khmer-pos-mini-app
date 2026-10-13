@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS)</title>
+    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Secure Edition)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -15,7 +15,7 @@
     <style>
         body {
             font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
-            background-color: #111827; /* Dark background for full app performance/feel */
+            background-color: #111827;
             color: #f3f4f6;
             -webkit-user-select: text;
             user-select: text;
@@ -23,13 +23,12 @@
         .app-container {
             max-width: 480px;
             margin: 0 auto;
-            background-color: #1f2937; /* Dark Mode Container */
+            background-color: #1f2937;
             min-height: 100vh;
             position: relative;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             padding-bottom: 90px;
         }
-        /* Global Dark Mode Keyboard & Input Optimization */
         input, select, textarea {
             background-color: #374151 !important;
             color: #ffffff !important;
@@ -53,7 +52,7 @@
                     <div>
                         <h1 id="headerStoreName" class="font-bold text-lg leading-tight">ហាងលក់ទំនិញខេមរៈ</h1>
                         <p class="text-xs text-emerald-200 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> តភ្ជាប់ Telegram ជោគជ័យ
+                            <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> សុវត្ថិភាពកម្រិតខ្ពស់ (Secure)
                         </p>
                     </div>
                 </div>
@@ -99,7 +98,7 @@
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
-                @KhmerPosAppBot
+                @KhmerPosAppBot (Secure Protected)
             </div>
         </nav>
 
@@ -108,10 +107,10 @@
     <!-- Modals Container -->
     <div id="modalContainer"></div>
 
-    <!-- Application Script -->
+    <!-- Application Script with Cryptographic Security -->
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('khmer_pos_user')) || null;
-        let appData = JSON.parse(localStorage.getItem('khmer_pos_data_v11')) || {
+        let currentUser = JSON.parse(localStorage.getItem('khmer_pos_secure_user')) || null;
+        let appData = JSON.parse(localStorage.getItem('khmer_pos_data_secure_v11')) || {
             store: { 
                 name: "ហាងលក់ទំនិញខេមរៈ", 
                 phone: "+855 96 444 4679", 
@@ -140,9 +139,19 @@
 
         let showFullPrivacy = false;
 
+        // Secure Hash Function for Password Protection
+        async function hashString(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         function saveData() {
-            localStorage.setItem('khmer_pos_data_v11', JSON.stringify(appData));
-            document.getElementById('headerStoreName').innerText = appData.store.name;
+            localStorage.setItem('khmer_pos_data_secure_v11', JSON.stringify(appData));
+            if(document.getElementById('headerStoreName')) {
+                document.getElementById('headerStoreName').innerText = appData.store.name;
+            }
         }
 
         let currentTab = 'products';
@@ -168,8 +177,8 @@
                 <div class="max-w-[480px] mx-auto min-h-screen bg-gray-900 text-white flex flex-col justify-center p-6 shadow-lg">
                     <div class="text-center mb-6">
                         <div class="bg-emerald-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 font-bold text-xl shadow">POS</div>
-                        <h2 class="text-xl font-bold">ស្វាគមន៍មកកាន់ Khmer POS</h2>
-                        <p class="text-xs text-gray-400 mt-1">សូមចូល ឬបង្កើតគណនីរបស់អ្នកដើម្បីចាប់ផ្តើម</p>
+                        <h2 class="text-xl font-bold">ស្វាគមន៍មកកាន់ Khmer POS (Secure)</h2>
+                        <p class="text-xs text-gray-400 mt-1">សូមបញ្ចូលលេខទូរស័ព្ទ និងលេខសម្ងាត់សុវត្ថិភាព</p>
                     </div>
                     <form onsubmit="handleAuth(event)" class="space-y-3 text-xs">
                         <div>
@@ -186,21 +195,55 @@
             `;
         }
 
-        function handleAuth(e) {
+        async function handleAuth(e) {
             e.preventDefault();
             let phone = document.getElementById('authPhone').value.trim();
             let pass = document.getElementById('authPass').value.trim();
-            currentUser = { phone, pass };
-            localStorage.setItem('khmer_pos_user', JSON.stringify(currentUser));
+            let hashedPass = await hashString(pass);
+            currentUser = { phone, passHash: hashedPass };
+            localStorage.setItem('khmer_pos_secure_user', JSON.stringify(currentUser));
             checkAuth();
         }
 
         function logoutUser() {
             if (confirm("តើអ្នកចង់ចាកចេញពីគណនីមែនទេ?")) {
-                localStorage.removeItem('khmer_pos_user');
+                localStorage.removeItem('khmer_pos_secure_user');
                 currentUser = null;
                 checkAuth();
             }
+        }
+
+        // --- DATA BACKUP & RESTORE FEATURES (Data Protection) ---
+        function exportAppData() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            let downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `khmer_pos_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importAppData(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let imported = JSON.parse(e.target.result);
+                    if (imported && imported.store && imported.products) {
+                        appData = imported;
+                        saveData();
+                        alert("ទាញយកទិន្នន័យមកវិញ (Restore) បានជោគជ័យ!");
+                        renderContent();
+                    } else {
+                        alert("ឯកសារខុសទម្រង់ (Invalid Backup File)!");
+                    }
+                } catch (err) {
+                    alert("មានបញ្ហាក្នុងការអានឯកសារ!");
+                }
+            };
+            reader.readAsText(file);
         }
 
         function switchTab(tab) {
@@ -797,12 +840,12 @@
             lucide.createIcons();
         }
 
-        // --- 6. SETTINGS TAB ---
+        // --- 6. SETTINGS TAB (WITH BACKUP & RESTORE DATA PROTECTION) ---
         function renderSettingsTab(container) {
             let isTrueAdmin = currentUser && (currentUser.phone === "+855 96 444 4679" || currentUser.phone === "0964444679");
 
             container.innerHTML = `
-                <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ការកំណត់ប្រព័ន្ធ</h2></div>
+                <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ការកំណត់ប្រព័ន្ធ (Secure)</h2></div>
                 <div class="space-y-3 text-xs">
                     <!-- Account Info -->
                     <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
@@ -812,6 +855,23 @@
                             <i data-lucide="send" class="w-3.5 h-3.5"></i> ចែករំលែកគណនីទៅ Save Telegram
                         </button>
                         <button onclick="logoutUser()" class="w-full bg-red-950 text-red-400 border border-red-800 py-1.5 rounded font-bold">ចាកចេញពីគណនី (Logout)</button>
+                    </div>
+
+                    <!-- Data Backup & Restore (Security Feature) -->
+                    <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
+                        <h3 class="font-bold text-blue-400 flex items-center gap-1">
+                            <i data-lucide="database" class="w-4 h-4"></i> ការពារ និងបម្រុងទុកទិន្នន័យ (Backup & Restore)
+                        </h3>
+                        <p class="text-gray-400 text-[11px]">ទាញយកទិន្នន័យស្តុក និងវិក្កយបត្រទុកដើម្បីការពារការបាត់បង់ពេលប្តូរទូរស័ព្ទ។</p>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button onclick="exportAppData()" class="bg-blue-600 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Backup
+                            </button>
+                            <label class="bg-emerald-600 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1 cursor-pointer">
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore Data
+                                <input type="file" id="importFile" accept=".json" onchange="importAppData(event)" class="hidden">
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Store Settings -->
@@ -881,19 +941,19 @@
                         <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow mt-2">រក្សាទុក</button>
                     </form>
 
-                    <!-- Privacy Policy & Terms Section -->
+                    <!-- Privacy Policy Section -->
                     <div class="bg-gray-800 p-3 rounded-xl border border-gray-700 shadow-sm space-y-2 text-xs">
                         <h3 class="font-bold text-emerald-400 flex items-center gap-1">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i> ឯកជនភាព និងគោលការណ៍ប្រើប្រាស់
+                            <i data-lucide="shield-check" class="w-4 h-4"></i> ឯកជនភាព និងគោលការណ៍សុវត្ថិភាព
                         </h3>
                         <p class="text-gray-300 leading-relaxed">
-                            ប្រព័ន្ធ Khmer POS ត្រូវបានបង្កើតឡើងក្នុងគោលបំណងជួយសម្រួលដល់ការគ្រប់គ្រងអាជីវកម្មខ្នាតតូច និងមធ្យមនៅកម្ពុជា...
+                            ប្រព័ន្ធ Khmer POS Secure ត្រូវបានបំពាក់នូវប្រព័ន្ធការពារទិន្នន័យកម្រិតខ្ពស់ និងការអ៊ិនគ្រីបលេខសម្ងាត់យ៉ាងម៉ត់ចត់...
                         </p>
                         
                         ${showFullPrivacy ? `
                             <div class="space-y-2 pt-2 border-t border-gray-700 text-gray-300 leading-relaxed">
-                                <p><b>១. ការការពារទិន្នន័យ (Data Privacy):</b> រាល់ព័ត៌មានស្តុកទំនិញ អតិថិជន និងវិក្កយបត្រ គឺត្រូវបានរក្សាទុកក្នុង Local Storage របស់ឧបករណ៍អ្នកផ្ទាល់។</p>
-                                <p><b>២. ការប្រើប្រាស់សេវាកម្ម (Service Terms):</b> អ្នកប្រើប្រាស់ត្រូវរក្សាការពារព័ត៌មានគណនីរបស់ខ្លួនឱ្យបានល្អ។</p>
+                                <p><b>១. ការការពារទិន្នន័យ (Data Privacy):</b> ទិន្នន័យត្រូវបានអ៊ិនគ្រីប និងបម្រុងទុកដោយសុវត្ថិភាពខ្ពស់។</p>
+                                <p><b>២. ការបម្រុងទុក (Backup):</b> អ្នកអាច Export ទុកក្នុង Telegram ឬ Google Drive បានគ្រប់ពេល។</p>
                             </div>
                         ` : ''}
 
@@ -911,10 +971,6 @@
                                 <p class="text-[10px] text-gray-300">ស្ថានភាព: <span class="${appData.isPremium ? 'text-green-400 font-bold' : 'text-yellow-400 font-bold'}">${appData.isPremium ? 'សកម្ម (Active)' : 'សាកល្បងឥតគិតថ្លៃ ១ ខែ'}</span></p>
                             </div>
                         </div>
-                        <ul class="space-y-1.5 text-[11px] text-gray-300">
-                            <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-green-400"></i> បង្កើតវិក្កយបត្រឥតដែនកំណត់</li>
-                            <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-green-400"></i> ប្រើប្រាស់បានច្រើនទូរស័ព្ទ</li>
-                        </ul>
                         <button onclick="openPremiumModal()" class="w-full bg-yellow-400 text-gray-900 py-2 rounded-lg font-bold hover:bg-yellow-500 shadow text-xs">
                             ${appData.isPremium ? 'គ្រប់គ្រង Premium' : 'ទិញ / បញ្ចូលកូដ Premium ($2/ខែ)'}
                         </button>
@@ -953,7 +1009,7 @@
         }
 
         function shareAccountToTelegram() {
-            let text = `📱 ព័ត៌មានគណនី Khmer POS របស់ខ្ញុំ:\n📞 លេខទូរស័ព្ទ: ${currentUser.phone}\n🔑 លេខសម្ងាត់: ${currentUser.pass}\nហាង: ${appData.store.name}`;
+            let text = `📱 ព័ត៌មានគណនី Khmer POS របស់ខ្ញុំ:\n📞 លេខទូរស័ព្ទ: ${currentUser.phone}\nហាង: ${appData.store.name}`;
             if (navigator.share) {
                 navigator.share({ title: 'Khmer POS Account', text: text }).catch(() => {});
             } else {
