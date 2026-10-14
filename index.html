@@ -116,7 +116,7 @@
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
-                Khmer Mini POS Web Edition (Telegram Sync)
+                Khmer Mini POS Web Edition (Telegram Cloud Sync)
             </div>
         </nav>
     </div>
@@ -149,7 +149,7 @@
         };
 
         const ADMIN_USERNAME = "@SameanMom168";
-        const GLOBAL_ANNOUNCE_KEY = "khmer_pos_global_announcements_v2";
+        const GLOBAL_ANNOUNCE_KEY = "khmer_pos_global_announcements_v3";
 
         function initApp() {
             let tgUser = tg?.initDataUnsafe?.user;
@@ -169,46 +169,83 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            // Sync Global Announcements
-            let globalAnnounce = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
-            if (globalAnnounce) {
-                try { appData.announcements = JSON.parse(globalAnnounce); } catch(e){}
-            } else {
-                localStorage.setItem(GLOBAL_ANNOUNCE_KEY, JSON.stringify(appData.announcements));
-            }
-
-            let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
-            if (savedData) {
-                try { 
-                    appData = JSON.parse(savedData); 
-                    let ga = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
-                    if(ga) appData.announcements = JSON.parse(ga);
-
-                    if (!appData.installDate) {
-                        appData.installDate = new Date().toISOString();
-                        saveData();
-                    }
-                } catch(e) {}
-            } else {
-                appData.installDate = new Date().toISOString();
-                saveData();
-            }
-
-            updateHeaderDate();
-            document.getElementById('authWrapper').classList.add('hidden');
-            document.getElementById('appWrapper').classList.remove('hidden');
-            renderContent();
-            
-            // Real-time listener for Announcements updates from Admin Panel across all devices
-            window.addEventListener('storage', (event) => {
-                if (event.key === GLOBAL_ANNOUNCE_KEY) {
+            // Load Announcements (from Telegram Cloud Storage if available, else localStorage backup)
+            loadGlobalAnnouncements((cloudData) => {
+                if (cloudData) {
                     try {
-                        let newAnnounces = JSON.parse(event.newValue);
-                        appData.announcements = newAnnounces;
-                        if (newAnnounces.length > 0) {
-                            triggerAutoPopupAnnouncement(newAnnounces[0]);
+                        appData.announcements = JSON.parse(cloudData);
+                    } catch(e){}
+                } else {
+                    let localAnnounce = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
+                    if (localAnnounce) {
+                        try { appData.announcements = JSON.parse(localAnnounce); } catch(e){}
+                    }
+                }
+
+                let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
+                if (savedData) {
+                    try { 
+                        appData = JSON.parse(savedData); 
+                        if (!appData.installDate) {
+                            appData.installDate = new Date().toISOString();
+                            saveData();
                         }
-                        if (currentTab === 'about') renderContent();
+                    } catch(e) {}
+                } else {
+                    appData.installDate = new Date().toISOString();
+                    saveData();
+                }
+
+                updateHeaderDate();
+                document.getElementById('authWrapper').classList.add('hidden');
+                document.getElementById('appWrapper').classList.remove('hidden');
+                renderContent();
+
+                // Start polling mechanism to check updates from Admin across all devices every 2 seconds
+                setInterval(pollGlobalAnnouncements, 2000);
+            });
+        }
+
+        function loadGlobalAnnouncements(callback) {
+            if (tg && tg.CloudStorage) {
+                tg.CloudStorage.getItem(GLOBAL_ANNOUNCE_KEY, (err, value) => {
+                    if (!err && value) {
+                        callback(value);
+                    } else {
+                        callback(null);
+                    }
+                });
+            } else {
+                callback(localStorage.getItem(GLOBAL_ANNOUNCE_KEY));
+            }
+        }
+
+        function saveGlobalAnnouncements(dataObj, onSuccess) {
+            let jsonStr = JSON.stringify(dataObj);
+            localStorage.setItem(GLOBAL_ANNOUNCE_KEY, jsonStr);
+            if (tg && tg.CloudStorage) {
+                tg.CloudStorage.setItem(GLOBAL_ANNOUNCE_KEY, jsonStr, (err, stored) => {
+                    if (onSuccess) onSuccess();
+                });
+            } else {
+                if (onSuccess) onSuccess();
+            }
+        }
+
+        let lastPollStr = "";
+        function pollGlobalAnnouncements() {
+            loadGlobalAnnouncements((cloudData) => {
+                if (cloudData && cloudData !== lastPollStr) {
+                    lastPollStr = cloudData;
+                    try {
+                        let parsed = JSON.parse(cloudData);
+                        if (JSON.stringify(parsed) !== JSON.stringify(appData.announcements)) {
+                            appData.announcements = parsed;
+                            if (parsed.length > 0) {
+                                triggerAutoPopupAnnouncement(parsed[0]);
+                            }
+                            if (currentTab === 'about') renderContent();
+                        }
                     } catch(e){}
                 }
             });
@@ -224,8 +261,6 @@
             if (savedData) {
                 try { 
                     appData = JSON.parse(savedData); 
-                    let ga = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
-                    if(ga) appData.announcements = JSON.parse(ga);
                     if (!appData.installDate) {
                         appData.installDate = new Date().toISOString();
                         saveData();
@@ -1091,20 +1126,19 @@
             let newAnnounce = { id: Date.now(), title, desc, link, linkText, date };
             appData.announcements.unshift(newAnnounce);
 
-            localStorage.setItem(GLOBAL_ANNOUNCE_KEY, JSON.stringify(appData.announcements));
-            saveData();
-
-            alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
-            triggerAutoPopupAnnouncement(newAnnounce);
-            renderContent();
+            saveGlobalAnnouncements(appData.announcements, () => {
+                alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
+                triggerAutoPopupAnnouncement(newAnnounce);
+                renderContent();
+            });
         }
 
         function deleteAnnouncement(id) {
             if (confirm("តើអ្នកចង់លុបសេចក្តីជូនដំណឹងនេះមែនទេ?")) {
                 appData.announcements = appData.announcements.filter(item => item.id !== id);
-                localStorage.setItem(GLOBAL_ANNOUNCE_KEY, JSON.stringify(appData.announcements));
-                saveData();
-                renderContent();
+                saveGlobalAnnouncements(appData.announcements, () => {
+                    renderContent();
+                });
             }
         }
 
