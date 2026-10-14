@@ -142,18 +142,14 @@
             customers: [{ id: 1, name: "លោក សុខ ជា", phone: "011 222 333", address: "តាខ្មៅ", note: "" }],
             invoices: [],
             finances: [],
-            aboutInfo: {
-                title: "សេចក្តីជូនដំណឹង និងព័ត៌មានពិសេសពីហាង",
-                desc: "សូមស្វាគមន៍មកកាន់ Khmer Mini POS ។ លោកអ្នកអាចប្រើប្រាស់មុខងារគ្រប់គ្រងស្តុក វិក្កយបត្រ និងចំណូលចំណាយបានយ៉ាងងាយស្រួល។",
-                link: "https://t.me/SameanMom168",
-                linkText: "ទំនាក់ទំនងក្រុមការងារ Telegram",
-                date: "2026-07-15"
-            },
+            announcements: [
+                { id: 1, title: "សេចក្តីជូនដំណឹង និងព័ត៌មានពិសេស", desc: "សូមស្វាគមន៍មកកាន់ Khmer Mini POS ។ លោកអ្នកអាចប្រើប្រាស់មុខងារគ្រប់គ្រងស្តុក វិក្កយបត្រ និងចំណូលចំណាយបានយ៉ាងងាយស្រួល។", link: "https://t.me/SameanMom168", linkText: "ទំនាក់ទំនងក្រុមការងារ Telegram", date: "2026-07-15" }
+            ],
             installDate: null
         };
 
         const ADMIN_USERNAME = "@SameanMom168";
-        const GLOBAL_ABOUT_KEY = "khmer_pos_global_about_info";
+        const GLOBAL_ANNOUNCE_KEY = "khmer_pos_global_announcements_v2";
 
         function initApp() {
             let tgUser = tg?.initDataUnsafe?.user;
@@ -173,20 +169,20 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            // Sync Global About Info
-            let globalAbout = localStorage.getItem(GLOBAL_ABOUT_KEY);
-            if (globalAbout) {
-                try { appData.aboutInfo = JSON.parse(globalAbout); } catch(e){}
+            // Sync Global Announcements
+            let globalAnnounce = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
+            if (globalAnnounce) {
+                try { appData.announcements = JSON.parse(globalAnnounce); } catch(e){}
             } else {
-                localStorage.setItem(GLOBAL_ABOUT_KEY, JSON.stringify(appData.aboutInfo));
+                localStorage.setItem(GLOBAL_ANNOUNCE_KEY, JSON.stringify(appData.announcements));
             }
 
             let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
             if (savedData) {
                 try { 
                     appData = JSON.parse(savedData); 
-                    let ga = localStorage.getItem(GLOBAL_ABOUT_KEY);
-                    if(ga) appData.aboutInfo = JSON.parse(ga);
+                    let ga = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
+                    if(ga) appData.announcements = JSON.parse(ga);
 
                     if (!appData.installDate) {
                         appData.installDate = new Date().toISOString();
@@ -203,13 +199,16 @@
             document.getElementById('appWrapper').classList.remove('hidden');
             renderContent();
             
-            // Real-time listener for About Info updates from Admin Panel
+            // Real-time listener for Announcements updates from Admin Panel across all devices
             window.addEventListener('storage', (event) => {
-                if (event.key === GLOBAL_ABOUT_KEY) {
+                if (event.key === GLOBAL_ANNOUNCE_KEY) {
                     try {
-                        let newAbout = JSON.parse(event.newValue);
-                        appData.aboutInfo = newAbout;
-                        triggerAutoPopupAbout(newAbout);
+                        let newAnnounces = JSON.parse(event.newValue);
+                        appData.announcements = newAnnounces;
+                        if (newAnnounces.length > 0) {
+                            triggerAutoPopupAnnouncement(newAnnounces[0]);
+                        }
+                        if (currentTab === 'about') renderContent();
                     } catch(e){}
                 }
             });
@@ -225,8 +224,8 @@
             if (savedData) {
                 try { 
                     appData = JSON.parse(savedData); 
-                    let ga = localStorage.getItem(GLOBAL_ABOUT_KEY);
-                    if(ga) appData.aboutInfo = JSON.parse(ga);
+                    let ga = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
+                    if(ga) appData.announcements = JSON.parse(ga);
                     if (!appData.installDate) {
                         appData.installDate = new Date().toISOString();
                         saveData();
@@ -1007,7 +1006,7 @@
             lucide.createIcons();
         }
 
-        // --- 6. ABOUT US & PREMIUM ACCOUNT TAB ---
+        // --- 6. ABOUT US & MULTIPLE ANNOUNCEMENTS TAB ---
         function renderAboutTab(container) {
             let installD = new Date(appData.installDate || new Date());
             let expiryDate = new Date(installD.getTime() + (30 * 24 * 60 * 60 * 1000));
@@ -1016,7 +1015,7 @@
             if (daysLeft < 0) daysLeft = 0;
 
             let isAdmin = (currentUserUsername === ADMIN_USERNAME || currentUserUsername === "@SameanMom168");
-            let about = appData.aboutInfo;
+            let announces = appData.announcements || [];
 
             container.innerHTML = `
                 <div class="mb-3"><h2 class="text-base font-bold text-gray-100">អំពីយើង និងសេចក្តីជូនដំណឹង</h2></div>
@@ -1030,18 +1029,24 @@
                         <p class="text-gray-300 text-[11px]">គណនីរបស់អ្នកឥតគិតថ្លៃចំនួន ៣០ ថ្ងៃដំបូង។ នៅសល់ពេលរាប់ថយក្រោយ៖ <b class="text-amber-300">${daysLeft} ថ្ងៃ</b></p>
                     </div>
 
-                    <!-- Admin Announcement / About Us -->
-                    <div class="bg-gray-800 border border-gray-700 p-4 rounded-xl space-y-2 shadow">
-                        <h3 class="font-bold text-emerald-400 text-sm">${about.title}</h3>
-                        <p class="text-gray-300 leading-relaxed">${about.desc}</p>
-                        ${about.link ? `
-                            <div class="pt-1">
-                                <a href="${about.link}" target="_blank" class="inline-block bg-blue-600 text-white px-3 py-1.5 rounded font-bold shadow text-xs">
-                                    🔗 ${about.linkText || 'ចុចទីនេះដើម្បីចូលរួម'}
-                                </a>
+                    <!-- Announcements List -->
+                    <div class="space-y-2">
+                        <h3 class="font-bold text-emerald-400 flex items-center gap-1"><i data-lucide="megaphone" class="w-4 h-4"></i> សេចក្តីជូនដំណឹង និងការផ្សព្វផ្សាយ៖</h3>
+                        ${announces.map((item, idx) => `
+                            <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2 shadow">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-emerald-300 text-sm">${item.title}</h4>${isAdmin ? `<button onclick="deleteAnnouncement(${item.id})" class="text-red-400 p-1 hover:bg-red-950 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                                </div>
+                                <p class="text-gray-300 leading-relaxed">${item.desc}</p>${item.link ? `
+                                    <div class="pt-1">
+                                        <a href="${item.link}" target="_blank" class="inline-block bg-blue-600 text-white px-3 py-1.5 rounded font-bold shadow text-xs">
+                                            🔗 ${item.linkText || 'ចុចទីនេះដើម្បីចូលរួម'}
+                                        </a>
+                                    </div>
+                                ` : ''}
+                                <p class="text-[10px] text-gray-500 text-right">${item.date}</p>
                             </div>
-                        ` : ''}
-                        <p class="text-[10px] text-gray-500 text-right">កាលបរិច្ឆេទធ្វើបច្ចុប្បន្នភាព៖ ${about.date}</p>
+                        `).join('')}
                     </div>
 
                     <!-- Guide & Benefits -->
@@ -1055,16 +1060,18 @@
                     </div>
 
                     ${isAdmin ? `
-                        <div class="bg-emerald-950/60 border border-emerald-600 p-3 rounded-xl space-y-2">
+                        <div class="bg-emerald-950/60 border border-emerald-600 p-4 rounded-xl space-y-2">
                             <h3 class="font-bold text-emerald-400 flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin Panel (@SameanMom168)</h3>
-                            <p class="text-gray-300 text-[11px]">កែប្រែព័ត៌មាន និង Link ផ្ញើជូនគ្រប់ Telegram App ទាំងអស់ភ្លាមៗស្វ័យប្រវត្ត។</p>
+                            <p class="text-gray-300 text-[11px]">ចុចសញ្ញាបូក (+) ដើម្បីបន្ថែមសេចក្តីជូនដំណឹងថ្មីៗ ហើយផ្ញើជូនគ្រប់ Telegram App ទាំងអស់ភ្លាមៗ។</p>
                             
-                            <form onsubmit="saveAdminAboutInfo(event)" class="space-y-2 pt-1">
-                                <div><label class="block mb-1">ចំណងជើង *</label><input type="text" id="adminAboutTitle" value="${about.title}" required class="w-full p-2 border rounded"></div>
-                                <div><label class="block mb-1">ព័ត៌មានលម្អិត *</label><textarea id="adminAboutDesc" rows="3" required class="w-full p-2 border rounded">${about.desc}</textarea></div>
-                                <div><label class="block mb-1">តំណភ្ជាប់ URL (Link)</label><input type="text" id="adminAboutLink" value="${about.link || ''}" placeholder="https://t.me/..." class="w-full p-2 border rounded"></div>
-                                <div><label class="block mb-1">អត្ថបទនៅលើប៊ូតុង Link</label><input type="text" id="adminAboutLinkText" value="${about.linkText || ''}" placeholder="ឧ. ចូលក្រុម Telegram" class="w-full p-2 border rounded"></div>
-                                <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow">រក្សាទុក និង Broadcast ភ្លាមៗ</button>
+                            <form onsubmit="saveNewAnnouncement(event)" class="space-y-2.5 pt-1">
+                                <div><label class="block mb-1">ចំណងជើង *</label><input type="text" id="annTitle" placeholder="ចំណងជើងសេចក្តីជូនដំណឹង" required class="w-full p-2 border rounded"></div>
+                                <div><label class="block mb-1">ព័ត៌មានលម្អិត *</label><textarea id="annDesc" rows="3" placeholder="អត្ថបទពិស្ដារ..." required class="w-full p-2 border rounded"></textarea></div>
+                                <div><label class="block mb-1">តំណភ្ជាប់ URL (Link)</label><input type="text" id="annLink" placeholder="https://t.me/..." class="w-full p-2 border rounded"></div>
+                                <div><label class="block mb-1">អត្ថបទនៅលើប៊ូតុង Link</label><input type="text" id="annLinkText" placeholder="ឧ. ចូលក្រុម Telegram" class="w-full p-2 border rounded"></div>
+                                <button type="submit" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow flex items-center justify-center gap-1">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> បន្ថែម និង Broadcast ភ្លាមៗ
+                                </button>
                             </form>
                         </div>
                     ` : ''}
@@ -1073,26 +1080,35 @@
             lucide.createIcons();
         }
 
-        function saveAdminAboutInfo(e) {
+        function saveNewAnnouncement(e) {
             e.preventDefault();
-            let title = document.getElementById('adminAboutTitle').value;
-            let desc = document.getElementById('adminAboutDesc').value;
-            let link = document.getElementById('adminAboutLink').value;
-            let linkText = document.getElementById('adminAboutLinkText').value;
+            let title = document.getElementById('annTitle').value;
+            let desc = document.getElementById('annDesc').value;
+            let link = document.getElementById('annLink').value;
+            let linkText = document.getElementById('annLinkText').value;
             let date = new Date().toISOString().split('T')[0];
 
-            let newAbout = { title, desc, link, linkText, date };
-            appData.aboutInfo = newAbout;
+            let newAnnounce = { id: Date.now(), title, desc, link, linkText, date };
+            appData.announcements.unshift(newAnnounce);
 
-            localStorage.setItem(GLOBAL_ABOUT_KEY, JSON.stringify(newAbout));
+            localStorage.setItem(GLOBAL_ANNOUNCE_KEY, JSON.stringify(appData.announcements));
             saveData();
 
-            alert("បានរក្សាទុក និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
-            triggerAutoPopupAbout(newAbout);
+            alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
+            triggerAutoPopupAnnouncement(newAnnounce);
             renderContent();
         }
 
-        function triggerAutoPopupAbout(about) {
+        function deleteAnnouncement(id) {
+            if (confirm("តើអ្នកចង់លុបសេចក្តីជូនដំណឹងនេះមែនទេ?")) {
+                appData.announcements = appData.announcements.filter(item => item.id !== id);
+                localStorage.setItem(GLOBAL_ANNOUNCE_KEY, JSON.stringify(appData.announcements));
+                saveData();
+                renderContent();
+            }
+        }
+
+        function triggerAutoPopupAnnouncement(ann) {
             let modal = document.getElementById('modalContainer');
             modal.innerHTML = `
                 <div class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
@@ -1102,16 +1118,16 @@
                             <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
                         <div class="bg-gray-800 p-3 rounded-xl border border-emerald-600/50 space-y-2">
-                            <p class="font-bold text-emerald-300 text-sm">${about.title}</p>
-                            <p class="text-gray-200 text-xs leading-relaxed">${about.desc}</p>
-                            ${about.link ? `
+                            <p class="font-bold text-emerald-300 text-sm">${ann.title}</p>
+                            <p class="text-gray-200 text-xs leading-relaxed">${ann.desc}</p>
+                            ${ann.link ? `
                                 <div class="pt-2">
-                                    <a href="${about.link}" target="_blank" class="block text-center bg-blue-600 text-white py-2 rounded font-bold shadow">
-                                        🔗 ${about.linkText || 'ចុចទីនេះដើម្បីចូលរួម'}
+                                    <a href="${ann.link}" target="_blank" class="block text-center bg-blue-600 text-white py-2 rounded font-bold shadow">
+                                        🔗 ${ann.linkText || 'ចុចទីនេះដើម្បីចូលរួម'}
                                     </a>
                                 </div>
                             ` : ''}
-                            <p class="text-[10px] text-gray-400 text-right">${about.date}</p>
+                            <p class="text-[10px] text-gray-400 text-right">${ann.date}</p>
                         </div>
                         <button onclick="closeModal()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow">យល់ព្រម / បិទ</button>
                     </div>
