@@ -49,24 +49,8 @@
 </head>
 <body class="text-gray-100">
 
-    <!-- Auth / Login Wrapper -->
-    <div id="authWrapper" class="app-container flex flex-col items-center justify-center p-6 space-y-4">
-        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl w-full max-w-sm text-center space-y-4 shadow-xl">
-            <div class="bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto font-bold text-xl">POS</div>
-            <h1 class="font-bold text-base text-gray-100">Khmer Mini POS Login</h1>
-            <p class="text-xs text-gray-400">ចូលដោយប្រើប្រាស់ Code ID របស់អ្នក ដើម្បីទាញយកទិន្នន័យលើឧបករណ៍ផ្សេង។</p>
-            
-            <div class="space-y-2 text-left text-xs">
-                <label class="block text-gray-300 font-medium">បញ្ចូល Code ID របស់អ្នក៖</label>
-                <input type="text" id="loginCodeInput" placeholder="ឧ. POS-987654 ឬ Telegram ID" class="w-full p-2.5 border rounded-lg text-center font-bold tracking-widest text-emerald-400 text-sm">
-            </div>
-
-            <button onclick="loginWithCustomCode()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow text-xs">ចូលប្រើប្រាស់ប្រព័ន្ធ</button>
-        </div>
-    </div>
-
     <!-- Main App Wrapper -->
-    <div id="appWrapper" class="app-container flex flex-col justify-between hidden">
+    <div id="appWrapper" class="app-container flex flex-col justify-between">
         <!-- Header -->
         <header class="bg-emerald-800 text-white p-4 sticky top-0 z-40 shadow-md">
             <div class="flex justify-between items-center">
@@ -119,7 +103,7 @@
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
-                Khmer Mini POS Web Edition (Firebase Cloud Sync)
+                Khmer Mini POS Cloud Edition (@KhmerPosAppBot)
             </div>
         </nav>
     </div>
@@ -140,7 +124,6 @@
             appId: "YOUR_APP_ID"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -177,6 +160,7 @@
                 currentUserUsername = "guest_user";
             }
 
+            // Auto-login configuration: ចូលដោយស្វ័យប្រវត្តិដោយផ្អែកលើ Telegram ID ឬ Code ដែលមានស្រាប់
             if (!currentStoreCode) {
                 if (tgUser && tgUser.id) {
                     currentStoreCode = `TG-${tgUser.id}`;
@@ -186,7 +170,7 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            // Real-time listener from Firebase Cloud Database for Announcements
+            // Real-time listener from Firebase for Announcements
             db.ref('global_announcements').on('value', (snapshot) => {
                 let data = snapshot.val();
                 if (data) {
@@ -213,32 +197,6 @@
             }
 
             updateHeaderDate();
-            document.getElementById('authWrapper').classList.add('hidden');
-            document.getElementById('appWrapper').classList.remove('hidden');
-            renderContent();
-        }
-
-        function loginWithCustomCode() {
-            let inputCode = document.getElementById('loginCodeInput').value.trim();
-            if (!inputCode) { alert("សូមបញ្ចូល Code ID ជាមុនសិន!"); return; }
-            currentStoreCode = inputCode;
-            localStorage.setItem('khmer_pos_active_code', currentStoreCode);
-            
-            let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
-            if (savedData) {
-                try { 
-                    appData = JSON.parse(savedData); 
-                    if (!appData.installDate) {
-                        appData.installDate = new Date().toISOString();
-                        saveData();
-                    }
-                } catch(e) {}
-            } else {
-                appData.installDate = new Date().toISOString();
-                saveData();
-            }
-            document.getElementById('authWrapper').classList.add('hidden');
-            document.getElementById('appWrapper').classList.remove('hidden');
             renderContent();
         }
 
@@ -1093,7 +1051,6 @@
             let newAnnounce = { id: Date.now(), title, desc, link, linkText, date };
             appData.announcements.unshift(newAnnounce);
 
-            // Save to Firebase Cloud Database (Real-time sync to all devices instantly)
             db.ref('global_announcements').set(appData.announcements).then(() => {
                 alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
                 triggerAutoPopupAnnouncement(newAnnounce);
