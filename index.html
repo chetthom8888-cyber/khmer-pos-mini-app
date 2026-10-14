@@ -8,11 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts (Battambang, Kantumruy Pro & Moul) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap" rel="stylesheet">
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Html5-Qrcode for Camera Scanning -->
+    <!-- Html5-Qrcode -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
         body {
@@ -46,7 +46,7 @@
 </head>
 <body class="text-gray-100">
 
-    <!-- Auth / Login with Custom Code Wrapper -->
+    <!-- Auth / Login Wrapper -->
     <div id="authWrapper" class="app-container flex flex-col items-center justify-center p-6 space-y-4">
         <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl w-full max-w-sm text-center space-y-4 shadow-xl">
             <div class="bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto font-bold text-xl">POS</div>
@@ -59,15 +59,11 @@
             </div>
 
             <button onclick="loginWithCustomCode()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow text-xs">ចូលប្រើប្រាស់ប្រព័ន្ធ</button>
-            <div class="pt-2 border-t border-gray-700 text-[10px] text-gray-500">
-                រាល់គណនីមាន Code ID ផ្ទាល់ខ្លួនសម្រាប់ Sync ទិន្នន័យស្វ័យប្រវត្ត។
-            </div>
         </div>
     </div>
 
     <!-- Main App Wrapper -->
     <div id="appWrapper" class="app-container flex flex-col justify-between hidden">
-        
         <!-- Header -->
         <header class="bg-emerald-800 text-white p-4 sticky top-0 z-40 shadow-md">
             <div class="flex justify-between items-center">
@@ -114,16 +110,15 @@
                     <i data-lucide="layers" class="w-5 h-5 mb-1"></i>
                     <span class="text-[10px]">ស្តុកទំនិញ</span>
                 </button>
-                <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center text-gray-400 hover:text-emerald-400">
-                    <i data-lucide="settings" class="w-5 h-5 mb-1"></i>
-                    <span class="text-[10px]">ការកំណត់</span>
+                <button onclick="switchTab('about')" id="nav-about" class="flex flex-col items-center justify-center text-gray-400 hover:text-emerald-400">
+                    <i data-lucide="info" class="w-5 h-5 mb-1"></i>
+                    <span class="text-[10px]">អំពីយើង</span>
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
                 Khmer Mini POS Web Edition (Telegram Sync)
             </div>
         </nav>
-
     </div>
 
     <!-- Modals Container -->
@@ -138,30 +133,25 @@
         let currentUserUsername = localStorage.getItem('khmer_pos_username') || null;
         
         let appData = {
-            store: { 
-                name: "ហាងលក់ទំនិញខេមរៈ", 
-                phone: "+855 96 444 4679", 
-                address: "ផ្ទះលេខ ១២៣, រាជធានីភ្នំពេញ", 
-                prefix: "INV"
-            },
+            store: { name: "ហាងលក់ទំនិញខេមរៈ", phone: "+855 96 444 4679", address: "ផ្ទះលេខ ១២៣, រាជធានីភ្នំពេញ", prefix: "INV" },
             products: [
                 { id: 1, name: "កូកាកូឡា (Coca Cola)", category: "ភេសជ្ជៈ", brand: "CocaCola", cost: 0.50, price: 0.75, qty: 120, code: "PRD-001", desc: "កំប៉ុង" },
                 { id: 2, name: "កាហ្វេទឹកដោះគោ", category: "ភេសជ្ជៈ", brand: "Cafe", cost: 1.00, price: 1.50, qty: 50, code: "PRD-002", desc: "ដប" }
             ],
             categories: ["ភេសជ្ជៈ", "ចំណីអាហារ", "សម្ភារប្រើប្រាស់"],
-            customers: [
-                { id: 1, name: "លោក សុខ ជា", phone: "011 222 333", address: "តាខ្មៅ", note: "" }
-            ],
+            customers: [{ id: 1, name: "លោក សុខ ជា", phone: "011 222 333", address: "តាខ្មៅ", note: "" }],
             invoices: [],
             finances: [],
-            promotions: [
-                { id: 1, title: "បញ្ចុះតម្លៃពិសេស ១០%", desc: "សម្រាប់អតិថិជនទិញចាប់ពី ១០ដុល្លារឡើងទៅ", date: "2026-06-01" }
-            ],
+            aboutInfo: {
+                title: "ហាងលក់ទំនិញខេមរៈ - ស្វាគមន៍វត្តមានលោកអ្នក",
+                desc: "យើងខ្ញុំផ្តល់ជូននូវទំនិញដែលមានគុណភាពខ្ពស់ និងតម្លៃសមរម្យ។ គ្រប់គ្រងទំនិញ និងវិក្កយបត្រយ៉ាងងាយស្រួលតាមរយៈ Mini App។",
+                date: "2026-07-15"
+            },
             installDate: null
         };
 
         const ADMIN_USERNAME = "@SameanMom168";
-        const GLOBAL_PROMO_KEY = "khmer_pos_global_promotions";
+        const GLOBAL_ABOUT_KEY = "khmer_pos_global_about_info";
 
         function initApp() {
             let tgUser = tg?.initDataUnsafe?.user;
@@ -181,21 +171,20 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            // Global Promotion Sync Check
-            let globalPromos = localStorage.getItem(GLOBAL_PROMO_KEY);
-            if (globalPromos) {
-                try { appData.promotions = JSON.parse(globalPromos); } catch(e){}
+            // Sync Global About Info
+            let globalAbout = localStorage.getItem(GLOBAL_ABOUT_KEY);
+            if (globalAbout) {
+                try { appData.aboutInfo = JSON.parse(globalAbout); } catch(e){}
             } else {
-                localStorage.setItem(GLOBAL_PROMO_KEY, JSON.stringify(appData.promotions));
+                localStorage.setItem(GLOBAL_ABOUT_KEY, JSON.stringify(appData.aboutInfo));
             }
 
             let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
             if (savedData) {
                 try { 
                     appData = JSON.parse(savedData); 
-                    // Sync with global promotions
-                    let gp = localStorage.getItem(GLOBAL_PROMO_KEY);
-                    if(gp) appData.promotions = JSON.parse(gp);
+                    let ga = localStorage.getItem(GLOBAL_ABOUT_KEY);
+                    if(ga) appData.aboutInfo = JSON.parse(ga);
 
                     if (!appData.installDate) {
                         appData.installDate = new Date().toISOString();
@@ -208,19 +197,17 @@
             }
 
             updateHeaderDate();
-            
             document.getElementById('authWrapper').classList.add('hidden');
             document.getElementById('appWrapper').classList.remove('hidden');
             renderContent();
             
-            // ฟังព្រឹត្តិការណ៍ Real-time ពេលមានការកែប្រែ Promotion ពី Admin
+            // Real-time listener for About Info updates from Admin Panel
             window.addEventListener('storage', (event) => {
-                if (event.key === GLOBAL_PROMO_KEY) {
+                if (event.key === GLOBAL_ABOUT_KEY) {
                     try {
-                        let newPromos = JSON.parse(event.newValue);
-                        appData.promotions = newPromos;
-                        // បង្ហាញផ្ទាំងផ្សព្វផ្សាយភ្លាមៗដោយស្វ័យប្រវត្តិ
-                        triggerAutoPopupPromotion(newPromos[0]);
+                        let newAbout = JSON.parse(event.newValue);
+                        appData.aboutInfo = newAbout;
+                        triggerAutoPopupAbout(newAbout);
                     } catch(e){}
                 }
             });
@@ -228,10 +215,7 @@
 
         function loginWithCustomCode() {
             let inputCode = document.getElementById('loginCodeInput').value.trim();
-            if (!inputCode) {
-                alert("សូមបញ្ចូល Code ID ជាមុនសិន!");
-                return;
-            }
+            if (!inputCode) { alert("សូមបញ្ចូល Code ID ជាមុនសិន!"); return; }
             currentStoreCode = inputCode;
             localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             
@@ -239,13 +223,8 @@
             if (savedData) {
                 try { 
                     appData = JSON.parse(savedData); 
-                    let gp = localStorage.getItem(GLOBAL_PROMO_KEY);
-                    if(gp) appData.promotions = JSON.parse(gp);
-
-                    if (!appData.installDate) {
-                        appData.installDate = new Date().toISOString();
-                        saveData();
-                    }
+                    let ga = localStorage.getItem(GLOBAL_ABOUT_KEY);
+                    if(ga) appData.aboutInfo = JSON.parse(ga);
                 } catch(e) {}
             } else {
                 appData.installDate = new Date().toISOString();
@@ -259,9 +238,7 @@
         function saveData() {
             localStorage.setItem(`khmer_pos_data_${currentStoreCode}`, JSON.stringify(appData));
             let headerNameEl = document.getElementById('headerStoreName');
-            if(headerNameEl) {
-                headerNameEl.innerText = appData.store.name;
-            }
+            if(headerNameEl) headerNameEl.innerText = appData.store.name;
         }
 
         function getKhmerDate(dateInput = new Date()) {
@@ -273,9 +250,7 @@
 
         function updateHeaderDate() {
             let el = document.getElementById('headerCurrentDate');
-            if (el) {
-                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ${getKhmerDate()}`;
-            }
+            if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ${getKhmerDate()}`;
         }
 
         let currentTab = 'products';
@@ -293,7 +268,7 @@
 
         function switchTab(tab) {
             currentTab = tab;
-            ['products', 'customers', 'invoices', 'finance', 'stock', 'settings'].forEach(t => {
+            ['products', 'customers', 'invoices', 'finance', 'stock', 'about', 'settings'].forEach(t => {
                 let btn = document.getElementById(`nav-${t}`);
                 if (btn) {
                     btn.className = t === tab 
@@ -312,11 +287,12 @@
             else if (currentTab === 'invoices') renderInvoicesTab(main);
             else if (currentTab === 'finance') renderFinanceTab(main);
             else if (currentTab === 'stock') renderStockTab(main);
+            else if (currentTab === 'about') renderAboutTab(main);
             else if (currentTab === 'settings') renderSettingsTab(main);
             lucide.createIcons();
         }
 
-        // --- 1. PRODUCTS & CATEGORIES TAB ---
+        // --- 1. PRODUCTS TAB ---
         function renderProductsTab(container) {
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-3">
@@ -750,10 +726,7 @@
         }
 
         function finalizeInvoice() {
-            if (invoiceCart.length === 0) {
-                alert("សូមបញ្ចូលទំនិញក្នុងវិក្កយបត្រជាមុនសិន!");
-                return;
-            }
+            if (invoiceCart.length === 0) { alert("សូមបញ្ចូលទំនិញក្នុងវិក្កយបត្រជាមុនសិន!"); return; }
 
             for(let item of invoiceCart) {
                 let p = appData.products.find(prod => prod.id === item.id);
@@ -802,17 +775,13 @@
                                 <p class="text-[10px] text-gray-500">Tel: ${appData.store.phone}</p>
                                 <h2 class="font-bold text-xs text-blue-800 tracking-wider mt-1">វិក្កយបត្រលក់ទំនិញ</h2>
                             </div>
-
                             <div class="flex justify-between text-[11px] leading-tight">
-                                <div>
-                                    <p><b>ឈ្មោះអតិថិជន:</b> ${inv.customer}</p>
-                                </div>
+                                <div><p><b>ឈ្មោះអតិថិជន:</b> ${inv.customer}</p></div>
                                 <div class="text-right">
                                     <p><b>N°</b> <span class="text-red-600 font-bold">${inv.invNo}</span></p>
                                     <p><b>កាលបរិច្ឆេទ:</b> ${getKhmerDate(inv.date)}</p>
                                 </div>
                             </div>
-
                             <div class="overflow-x-auto">
                                 <table class="w-full text-[10px] border-collapse border border-blue-300 text-center">
                                     <thead>
@@ -837,7 +806,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                             <div class="border border-blue-300 p-2 rounded bg-blue-50/50 space-y-1 text-[11px]">
                                 <div class="flex justify-between font-bold">
                                     <span>ទឹកប្រាក់សរុប:</span>
@@ -857,36 +825,46 @@
             lucide.createIcons();
         }
 
-        // --- 4. FINANCE TAB ---
+        // --- 4. FINANCE TAB (Daily & Monthly Reports) ---
         function renderFinanceTab(container) {
-            let totalInc = appData.finances.filter(f => f.type === 'income').reduce((s, f) => s + f.amountUSD, 0);
-            let totalExp = appData.finances.filter(f => f.type === 'expense').reduce((s, f) => s + f.amountUSD, 0);
+            let todayStr = new Date().toISOString().split('T')[0];
+            let currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+
+            let dailyInc = appData.finances.filter(f => f.date === todayStr && f.type === 'income').reduce((s, f) => s + f.amountUSD, 0);
+            let dailyExp = appData.finances.filter(f => f.date === todayStr && f.type === 'expense').reduce((s, f) => s + f.amountUSD, 0);
             
+            let monthlyInc = appData.finances.filter(f => f.date.startsWith(currentMonthStr) && f.type === 'income').reduce((s, f) => s + f.amountUSD, 0);
+            let monthlyExp = appData.finances.filter(f => f.date.startsWith(currentMonthStr) && f.type === 'expense').reduce((s, f) => s + f.amountUSD, 0);
+
             container.innerHTML = `
                 <div class="mb-3 flex justify-between items-center">
                     <h2 class="text-base font-bold text-gray-100">ចំណូល និង ចំណាយ</h2>
                     <div class="flex gap-1.5">
-                        <button onclick="openFinanceModal('income')" class="bg-emerald-600 text-white px-2.5 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow">
+                        <button onclick="openFinanceModal('income')" class="bg-emerald-600 text-white px-2 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow">
                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> ចំណូល
                         </button>
-                        <button onclick="openFinanceModal('expense')" class="bg-red-600 text-white px-2.5 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow">
+                        <button onclick="openFinanceModal('expense')" class="bg-red-600 text-white px-2 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow">
                             <i data-lucide="minus-circle" class="w-3.5 h-3.5"></i> ចំណាយ
                         </button>
                     </div>
                 </div>
 
+                <!-- របាយការណ៍ប្រចាំថ្ងៃ និងប្រចាំខែ -->
                 <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div class="bg-emerald-950/60 border border-emerald-800 p-3 rounded-xl text-xs">
-                        <p class="text-emerald-400 font-bold">ចំណូលសរុប</p>
-                        <p class="text-sm font-bold text-emerald-300 mt-1">${formatMoney(totalInc)}</p>
+                    <div class="bg-gray-800 border border-emerald-700/60 p-2.5 rounded-xl text-xs space-y-1">
+                        <p class="text-emerald-400 font-bold border-b border-gray-700 pb-1">📅 ប្រចាំថ្ងៃ (ថ្ងៃនេះ)</p>
+                        <p class="text-gray-300">ចំណូល: <b class="text-emerald-400">${formatMoney(dailyInc)}</b></p>
+                        <p class="text-gray-300">ចំណាយ: <b class="text-red-400">${formatMoney(dailyExp)}</b></p>
                     </div>
-                    <div class="bg-red-950/60 border border-red-800 p-3 rounded-xl text-xs">
-                        <p class="text-red-400 font-bold">ចំណាយសរុប</p>
-                        <p class="text-sm font-bold text-red-300 mt-1">${formatMoney(totalExp)}</p>
+                    <div class="bg-gray-800 border border-blue-700/60 p-2.5 rounded-xl text-xs space-y-1">
+                        <p class="text-blue-400 font-bold border-b border-gray-700 pb-1">📊 ប្រចាំខែ (ខែនេះ)</p>
+                        <p class="text-gray-300">ចំណូល: <b class="text-emerald-400">${formatMoney(monthlyInc)}</b></p>
+                        <p class="text-gray-300">ចំណាយ: <b class="text-red-400">${formatMoney(monthlyExp)}</b></p>
                     </div>
                 </div>
 
                 <div class="space-y-2 text-xs">
+                    <h3 class="font-bold text-gray-300 mb-1">ប្រតិបត្តិការទាំងអស់៖</h3>
                     ${appData.finances.length === 0 ? `<div class="text-center py-6 text-gray-500 text-xs">មិនទាន់មានទិន្នន័យចំណូលចំណាយ</div>` : 
                         appData.finances.map(f => `
                         <div class="bg-gray-800 p-2.5 rounded border border-gray-700 shadow-sm flex justify-between items-center">
@@ -956,10 +934,7 @@
             let amountUSD = parseFloat(document.getElementById('fAmountUSD').value) || 0;
             let date = document.getElementById('fDate').value;
 
-            if (amountUSD <= 0) {
-                alert("សូមបញ្ចូលចំនួនទឹកប្រាក់ឱ្យបានត្រឹមត្រូវ!");
-                return;
-            }
+            if (amountUSD <= 0) { alert("សូមបញ្ចូលចំនួនទឹកប្រាក់ឱ្យបានត្រឹមត្រូវ!"); return; }
 
             appData.finances.unshift({ id: Date.now(), type, title, amountUSD, date });
             saveData();
@@ -977,9 +952,9 @@
         function renderStockTab(container) {
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-base font-bold text-gray-100">ស្តុក និងរបាយការណ៍ប្រចាំខែ</h2>
+                    <h2 class="text-base font-bold text-gray-100">ស្តុកទំនិញ និងរបាយការណ៍</h2>
                     <button onclick="openMonthlyStockReport()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow">
-                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> របាយការណ៍ខែនេះ
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> របាយការណ៍ស្តុកខែនេះ
                     </button>
                 </div>
                 <div class="space-y-2 text-xs">
@@ -1000,8 +975,6 @@
             let totalValue = appData.products.reduce((sum, p) => sum + (p.price * p.qty), 0);
             let reportDateStr = getKhmerDate();
 
-            let reportText = `📋 របាយការណ៍ស្តុកប្រចាំខែ\nហាង: ${appData.store.name}\nកាលបរិច្ឆេទ: ${reportDateStr}\n-----------------------------------\n- ប្រភេទមុខទំនិញសរុប: ${totalProducts}\n- ចំនួនស្តុកសរុបក្នុងឃ្លាំង: ${totalQty}\n- តម្លៃស្តុកសរុប: $${totalValue.toFixed(2)}\n`;
-
             let modal = document.getElementById('modalContainer');
             modal.innerHTML = `
                 <div class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-3">
@@ -1010,7 +983,7 @@
                             <h3 class="font-bold text-sm text-emerald-400">របាយការណ៍ស្តុកប្រចាំខែ</h3>
                             <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
-                        <div id="reportBox" class="bg-white text-gray-900 p-3 rounded-lg space-y-2 select-all font-mono text-[11px]">
+                        <div class="bg-white text-gray-900 p-3 rounded-lg space-y-2 select-all font-mono text-[11px]">
                             <p style="font-family: 'Moul', cursive;" class="font-bold text-center text-blue-900 text-xs">${appData.store.name}</p>
                             <p class="text-center text-gray-600">${reportDateStr}</p>
                             <hr>
@@ -1019,10 +992,7 @@
                             <p><b>តម្លៃលក់សរុបក្នុងស្តុក:</b> $${totalValue.toFixed(2)}</p>
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-3">
-                            <button onclick="navigator.clipboard.writeText(\`${reportText}\`).then(()=>alert('បានចម្លងរបាយការណ៍រួចរាល់!'))" class="bg-blue-600 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1">
-                                <i data-lucide="copy" class="w-4 h-4"></i> ចម្លងអក្សរ
-                            </button>
-                            <button onclick="window.print()" class="bg-gray-700 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1">
+                            <button onclick="window.print()" class="w-full col-span-2 bg-gray-700 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1">
                                 <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
                             </button>
                         </div>
@@ -1032,39 +1002,92 @@
             lucide.createIcons();
         }
 
-        // --- 6. SETTINGS TAB ---
+        // --- 6. ABOUT US / PROMOTIONS TAB (Managed Solely by Admin @SameanMom168) ---
+        function renderAboutTab(container) {
+            let isAdmin = (currentUserUsername === ADMIN_USERNAME || currentUserUsername === "@SameanMom168");
+            let about = appData.aboutInfo;
+
+            container.innerHTML = `
+                <div class="mb-3"><h2 class="text-base font-bold text-gray-100">អំពីយើង និងសេចក្តីជូនដំណឹង</h2></div>
+                <div class="space-y-3 text-xs">
+                    <div class="bg-gray-800 border border-gray-700 p-4 rounded-xl space-y-2 shadow">
+                        <h3 class="font-bold text-emerald-400 text-sm">${about.title}</h3>
+                        <p class="text-gray-300 leading-relaxed">${about.desc}</p>
+                        <p class="text-[10px] text-gray-500 text-right">កាលបរិច្ឆេទធ្វើបច្ចុប្បន្នភាព៖ ${about.date}</p>
+                    </div>
+
+                    ${isAdmin ? `
+                        <div class="bg-emerald-950/60 border border-emerald-600 p-3 rounded-xl space-y-2">
+                            <h3 class="font-bold text-emerald-400 flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin Panel (@SameanMom168)</h3>
+                            <p class="text-gray-300 text-[11px]">កែប្រែព័ត៌មាន "អំពីយើង" និងផ្ញើជូនគ្រប់ Telegram App ទាំងអស់ភ្លាមៗស្វ័យប្រវត្ត។</p>
+                            
+                            <form onsubmit="saveAdminAboutInfo(event)" class="space-y-2 pt-1">
+                                <div><label class="block mb-1">ចំណងជើង *</label><input type="text" id="adminAboutTitle" value="${about.title}" required class="w-full p-2 border rounded"></div>
+                                <div><label class="block mb-1">ព័ត៌មានលម្អិត *</label><textarea id="adminAboutDesc" rows="3" required class="w-full p-2 border rounded">${about.desc}</textarea></div>
+                                <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow">រក្សាទុក និង Broadcast ភ្លាមៗ</button>
+                            </form>
+                        </div>
+                    ` : `
+                        <div class="text-center py-2 text-gray-500 text-[11px]">
+                            គ្រប់គ្រងដោយ Admin Panel (${ADMIN_USERNAME}) ម្នាក់គត់។
+                        </div>
+                    `}
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function saveAdminAboutInfo(e) {
+            e.preventDefault();
+            let title = document.getElementById('adminAboutTitle').value;
+            let desc = document.getElementById('adminAboutDesc').value;
+            let date = new Date().toISOString().split('T')[0];
+
+            let newAbout = { title, desc, date };
+            appData.aboutInfo = newAbout;
+
+            localStorage.setItem(GLOBAL_ABOUT_KEY, JSON.stringify(newAbout));
+            saveData();
+
+            alert("បានរក្សាទុក និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
+            triggerAutoPopupAbout(newAbout);
+            renderContent();
+        }
+
+        function triggerAutoPopupAbout(about) {
+            let modal = document.getElementById('modalContainer');
+            modal.innerHTML = `
+                <div class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+                    <div class="bg-gray-900 text-white rounded-2xl w-full max-w-md p-5 text-xs border-2 border-emerald-500 space-y-3 shadow-2xl">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                            <h3 class="font-bold text-sm text-emerald-400 flex items-center gap-1"><i data-lucide="bell" class="w-4 h-4"></i> ព័ត៌មានថ្មីពី Admin!</h3>
+                            <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="bg-gray-800 p-3 rounded-xl border border-emerald-600/50 space-y-2">
+                            <p class="font-bold text-emerald-300 text-sm">${about.title}</p>
+                            <p class="text-gray-200 text-xs leading-relaxed">${about.desc}</p>
+                            <p class="text-[10px] text-gray-400 text-right">${about.date}</p>
+                        </div>
+                        <button onclick="closeModal()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow">យល់ព្រម / បិទ</button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // --- 7. SETTINGS TAB ---
         function renderSettingsTab(container) {
-            let installD = new Date(appData.installDate || new Date());
-            let expiryDate = new Date(installD.getTime() + (30 * 24 * 60 * 60 * 1000));
-            let now = new Date();
-            let daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-            if (daysLeft < 0) daysLeft = 0;
-
-            let isAdmin = (currentUserUsername === ADMIN_USERNAME);
-
             container.innerHTML = `
                 <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ការកំណត់ប្រព័ន្ធ</h2></div>
                 <div class="space-y-3 text-xs">
-                    <!-- ប្រព័ន្ធ Premium Account -->
-                    <div class="bg-gradient-to-r from-amber-950 to-gray-900 border border-amber-600/50 p-3 rounded-xl space-y-1.5 shadow">
-                        <div class="flex justify-between items-center">
-                            <h3 class="font-bold text-amber-400 flex items-center gap-1"><i data-lucide="crown" class="w-4 h-4"></i> ប្រព័ន្ធ Premium Account</h3>
-                            <span class="bg-amber-500 text-black px-2 py-0.5 rounded text-[10px] font-bold">Free 30 Days</span>
-                        </div>
-                        <p class="text-gray-300 text-[11px]">គណនីរបស់អ្នកឥតគិតថ្លៃចំនួន ៣០ ថ្ងៃដំបូង។ នៅសល់ពេល៖ <b class="text-amber-300">${daysLeft} ថ្ងៃ</b></p>
-                    </div>
-
-                    <!-- Code ID -->
                     <div class="bg-emerald-950/70 border border-emerald-600 p-3 rounded-xl space-y-1.5 shadow">
                         <h3 class="font-bold text-emerald-400 flex items-center gap-1"><i data-lucide="key" class="w-4 h-4"></i> Code ID សម្រាប់ Sync ឧបករណ៍ផ្សេង</h3>
-                        <p class="text-gray-300 text-[11px]">ប្រើប្រាស់ Code នេះដើម្បី Log in នៅលើទូរស័ព្ទ ឬកុំព្យូទ័រផ្សេង៖</p>
                         <div class="bg-gray-900 p-2 rounded text-center text-emerald-300 font-mono font-bold text-sm tracking-wider select-all border border-emerald-800">
                             ${currentStoreCode}
                         </div>
                         <button onclick="navigator.clipboard.writeText('${currentStoreCode}').then(()=>alert('បានចម្លង Code ID រួចរាល់!'))" class="w-full bg-emerald-700 text-white py-1.5 rounded font-bold mt-1">ចម្លង Code ID</button>
                     </div>
 
-                    <!-- ព័ត៌មានហាង -->
                     <form onsubmit="saveSettings(event)" class="bg-gray-800 p-3 rounded-xl border border-gray-700 shadow-sm space-y-2.5">
                         <h3 class="font-bold text-emerald-400">ព័ត៌មានហាង</h3>
                         <div><label class="block mb-1 text-gray-300">ឈ្មោះហាង</label><input type="text" id="sName" value="${appData.store.name}" required class="w-full p-2 border rounded font-moul"></div>
@@ -1073,109 +1096,12 @@
                         <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow mt-2">រក្សាទុកព័ត៌មាន</button>
                     </form>
 
-                    <!-- ការផ្សព្វផ្សាយ -->
-                    <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
-                        <h3 class="font-bold text-emerald-400 flex items-center gap-1"><i data-lucide="megaphone" class="w-4 h-4"></i> ផ្នែកផ្សព្វផ្សាយ (Promotion)</h3>
-                        <p class="text-gray-300 text-[11px]">មើលការផ្សព្វផ្សាយរបស់ហាង។</p>
-                        <button onclick="openPromotionModal()" class="w-full bg-amber-600 text-white py-2 rounded font-bold shadow">ចូលមើលការផ្សព្វផ្សាយ</button>
-                        
-                        ${isAdmin ? `
-                            <button onclick="openAdminPromoEditor()" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow mt-2 flex items-center justify-center gap-1">
-                                <i data-lucide="shield-alert" class="w-4 h-4"></i> Admin Panel (កែប្រែ Promotion)
-                            </button>
-                        ` : ''}
-                    </div>
-
                     <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
                         <button onclick="logoutApp()" class="w-full bg-red-950 text-red-400 border border-red-800 py-2 rounded font-bold">ออกจากระบบ / ប្តូរគណនី</button>
                     </div>
                 </div>
             `;
             lucide.createIcons();
-        }
-
-        function openPromotionModal() {
-            let modal = document.getElementById('modalContainer');
-            modal.innerHTML = `
-                <div class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-                    <div class="bg-gray-900 text-white rounded-2xl w-full max-w-md p-4 text-xs max-h-[90vh] overflow-y-auto border border-amber-600 space-y-3">
-                        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                            <h3 class="font-bold text-sm text-amber-400">សេចក្តីជូនដំណឹង និងការផ្សព្វផ្សាយ</h3>
-                            <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-                        </div>
-                        
-                        <div class="space-y-2">
-                            ${appData.promotions.map(p => `
-                                <div class="bg-gray-800 p-2.5 rounded border border-gray-700 space-y-1">
-                                    <p class="font-bold text-amber-300">${p.title}</p>
-                                    <p class="text-gray-300 text-[11px]">${p.desc}</p>
-                                    <p class="text-[10px] text-gray-500">${p.date}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        function triggerAutoPopupPromotion(promo) {
-            let modal = document.getElementById('modalContainer');
-            modal.innerHTML = `
-                <div class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 animate-pulse">
-                    <div class="bg-gray-900 text-white rounded-2xl w-full max-w-md p-5 text-xs border-2 border-amber-500 space-y-3 shadow-2xl">
-                        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                            <h3 class="font-bold text-sm text-amber-400 flex items-center gap-1"><i data-lucide="bell" class="w-4 h-4"></i> ដំណឹងផ្សព្វផ្សាយថ្មី!</h3>
-                            <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-                        </div>
-                        <div class="bg-gray-800 p-3 rounded-xl border border-amber-600/50 space-y-2">
-                            <p class="font-bold text-amber-300 text-sm">${promo.title}</p>
-                            <p class="text-gray-200 text-xs leading-relaxed">${promo.desc}</p>
-                            <p class="text-[10px] text-gray-400 text-right">${promo.date}</p>
-                        </div>
-                        <button onclick="closeModal()" class="w-full bg-amber-600 text-black py-2.5 rounded-lg font-bold shadow">យល់ព្រម / បិទ</button>
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        function openAdminPromoEditor() {
-            let modal = document.getElementById('modalContainer');
-            modal.innerHTML = `
-                <div class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-                    <div class="bg-gray-900 text-white rounded-2xl w-full max-w-md p-4 text-xs max-h-[90vh] overflow-y-auto border border-emerald-600 space-y-3">
-                        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                            <h3 class="font-bold text-sm text-emerald-400">Admin Panel (@SameanMom168) - កែប្រែការផ្សព្វផ្សាយ</h3>
-                            <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-                        </div>
-                        <form onsubmit="saveNewPromotion(event)" class="space-y-2.5">
-                            <div><label class="block mb-1">ចំណងជើង Promotion *</label><input type="text" id="promoTitle" required class="w-full p-2 border rounded"></div>
-                            <div><label class="block mb-1">បរិយាយលម្អិត *</label><textarea id="promoDesc" rows="3" required class="w-full p-2 border rounded"></textarea></div>
-                            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold">ផ្សព្វផ្សាយភ្លាមៗ (Real-time Broadcast)</button>
-                        </form>
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        function saveNewPromotion(e) {
-            e.preventDefault();
-            let title = document.getElementById('promoTitle').value;
-            let desc = document.getElementById('promoDesc').value;
-            let date = new Date().toISOString().split('T')[0];
-
-            let newPromo = { id: Date.now(), title, desc, date };
-            appData.promotions.unshift(newPromo);
-
-            // រក្សាទុកចូល Global Storage ដើម្បីឱ្យគ្រប់ឧបករណ៍ទាំងអស់ទទួលបានភ្លាមៗ
-            localStorage.setItem(GLOBAL_PROMO_KEY, JSON.stringify(appData.promotions));
-            saveData();
-
-            alert("បានផ្សព្វផ្សាយទៅកាន់គ្រប់គណនីទាំងអស់ជោគជ័យ!");
-            closeModal();
-            triggerAutoPopupPromotion(newPromo);
         }
 
         function saveSettings(e) {
