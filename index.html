@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Web Edition)</title>
+    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Cloud Edition)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -14,6 +14,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Html5-Qrcode -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- Firebase App & Realtime Database SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
@@ -116,7 +119,7 @@
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
-                Khmer Mini POS Web Edition (Telegram Cloud Sync)
+                Khmer Mini POS Web Edition (Firebase Cloud Sync)
             </div>
         </nav>
     </div>
@@ -126,6 +129,21 @@
 
     <!-- Application Script -->
     <script>
+        // TODO: ជំនួសតំលៃ firebaseConfig ខាងក្រោមដោយទិន្នន័យដែលបានពី Firebase Console របស់បង
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.expand(); }
 
@@ -149,7 +167,6 @@
         };
 
         const ADMIN_USERNAME = "@SameanMom168";
-        const GLOBAL_ANNOUNCE_KEY = "khmer_pos_global_announcements_v3";
 
         function initApp() {
             let tgUser = tg?.initDataUnsafe?.user;
@@ -169,86 +186,36 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            // Load Announcements (from Telegram Cloud Storage if available, else localStorage backup)
-            loadGlobalAnnouncements((cloudData) => {
-                if (cloudData) {
-                    try {
-                        appData.announcements = JSON.parse(cloudData);
-                    } catch(e){}
-                } else {
-                    let localAnnounce = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
-                    if (localAnnounce) {
-                        try { appData.announcements = JSON.parse(localAnnounce); } catch(e){}
+            // Real-time listener from Firebase Cloud Database for Announcements
+            db.ref('global_announcements').on('value', (snapshot) => {
+                let data = snapshot.val();
+                if (data) {
+                    appData.announcements = data;
+                    if (data.length > 0) {
+                        triggerAutoPopupAnnouncement(data[0]);
                     }
-                }
-
-                let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
-                if (savedData) {
-                    try { 
-                        appData = JSON.parse(savedData); 
-                        if (!appData.installDate) {
-                            appData.installDate = new Date().toISOString();
-                            saveData();
-                        }
-                    } catch(e) {}
-                } else {
-                    appData.installDate = new Date().toISOString();
-                    saveData();
-                }
-
-                updateHeaderDate();
-                document.getElementById('authWrapper').classList.add('hidden');
-                document.getElementById('appWrapper').classList.remove('hidden');
-                renderContent();
-
-                // Start polling mechanism to check updates from Admin across all devices every 2 seconds
-                setInterval(pollGlobalAnnouncements, 2000);
-            });
-        }
-
-        function loadGlobalAnnouncements(callback) {
-            if (tg && tg.CloudStorage) {
-                tg.CloudStorage.getItem(GLOBAL_ANNOUNCE_KEY, (err, value) => {
-                    if (!err && value) {
-                        callback(value);
-                    } else {
-                        callback(null);
-                    }
-                });
-            } else {
-                callback(localStorage.getItem(GLOBAL_ANNOUNCE_KEY));
-            }
-        }
-
-        function saveGlobalAnnouncements(dataObj, onSuccess) {
-            let jsonStr = JSON.stringify(dataObj);
-            localStorage.setItem(GLOBAL_ANNOUNCE_KEY, jsonStr);
-            if (tg && tg.CloudStorage) {
-                tg.CloudStorage.setItem(GLOBAL_ANNOUNCE_KEY, jsonStr, (err, stored) => {
-                    if (onSuccess) onSuccess();
-                });
-            } else {
-                if (onSuccess) onSuccess();
-            }
-        }
-
-        let lastPollStr = "";
-        function pollGlobalAnnouncements() {
-            loadGlobalAnnouncements((cloudData) => {
-                if (cloudData && cloudData !== lastPollStr) {
-                    lastPollStr = cloudData;
-                    try {
-                        let parsed = JSON.parse(cloudData);
-                        if (JSON.stringify(parsed) !== JSON.stringify(appData.announcements)) {
-                            appData.announcements = parsed;
-                            if (parsed.length > 0) {
-                                triggerAutoPopupAnnouncement(parsed[0]);
-                            }
-                            if (currentTab === 'about') renderContent();
-                        }
-                    } catch(e){}
+                    if (currentTab === 'about') renderContent();
                 }
             });
+
+            let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
+            if (savedData) {
+                try { 
+                    appData = JSON.parse(savedData); 
+                    if (!appData.installDate) {
+                        appData.installDate = new Date().toISOString();
+                        saveData();
+                    }
+                } catch(e) {}
+            } else {
+                appData.installDate = new Date().toISOString();
+                saveData();
+            }
+
+            updateHeaderDate();
+            document.getElementById('authWrapper').classList.add('hidden');
+            document.getElementById('appWrapper').classList.remove('hidden');
+            renderContent();
         }
 
         function loginWithCustomCode() {
@@ -1126,7 +1093,8 @@
             let newAnnounce = { id: Date.now(), title, desc, link, linkText, date };
             appData.announcements.unshift(newAnnounce);
 
-            saveGlobalAnnouncements(appData.announcements, () => {
+            // Save to Firebase Cloud Database (Real-time sync to all devices instantly)
+            db.ref('global_announcements').set(appData.announcements).then(() => {
                 alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
                 triggerAutoPopupAnnouncement(newAnnounce);
                 renderContent();
@@ -1136,7 +1104,7 @@
         function deleteAnnouncement(id) {
             if (confirm("តើអ្នកចង់លុបសេចក្តីជូនដំណឹងនេះមែនទេ?")) {
                 appData.announcements = appData.announcements.filter(item => item.id !== id);
-                saveGlobalAnnouncements(appData.announcements, () => {
+                db.ref('global_announcements').set(appData.announcements).then(() => {
                     renderContent();
                 });
             }
