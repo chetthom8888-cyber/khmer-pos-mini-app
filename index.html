@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Secure Edition)</title>
+    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Optimized Edition)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -52,7 +52,7 @@
                     <div>
                         <h1 id="headerStoreName" class="font-bold text-lg leading-tight">ហាងលក់ទំនិញខេមរៈ</h1>
                         <p class="text-xs text-emerald-200 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> សុវត្ថិភាពកម្រិតខ្ពស់ (Secure)
+                            <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> លឿន និងសុវត្ថិភាពខ្ពស់
                         </p>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
-                @KhmerPosAppBot (Secure Protected)
+                @KhmerPosAppBot (Optimized Edition)
             </div>
         </nav>
 
@@ -107,10 +107,10 @@
     <!-- Modals Container -->
     <div id="modalContainer"></div>
 
-    <!-- Application Script with Cryptographic Security -->
+    <!-- Application Script -->
     <script>
         let currentUser = JSON.parse(localStorage.getItem('khmer_pos_secure_user')) || null;
-        let appData = JSON.parse(localStorage.getItem('khmer_pos_data_secure_v11')) || {
+        let appData = JSON.parse(localStorage.getItem('khmer_pos_data_secure_v12')) || {
             store: { 
                 name: "ហាងលក់ទំនិញខេមរៈ", 
                 phone: "+855 96 444 4679", 
@@ -139,7 +139,6 @@
 
         let showFullPrivacy = false;
 
-        // Secure Hash Function for Password Protection
         async function hashString(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -148,7 +147,7 @@
         }
 
         function saveData() {
-            localStorage.setItem('khmer_pos_data_secure_v11', JSON.stringify(appData));
+            localStorage.setItem('khmer_pos_data_secure_v12', JSON.stringify(appData));
             if(document.getElementById('headerStoreName')) {
                 document.getElementById('headerStoreName').innerText = appData.store.name;
             }
@@ -177,7 +176,7 @@
                 <div class="max-w-[480px] mx-auto min-h-screen bg-gray-900 text-white flex flex-col justify-center p-6 shadow-lg">
                     <div class="text-center mb-6">
                         <div class="bg-emerald-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 font-bold text-xl shadow">POS</div>
-                        <h2 class="text-xl font-bold">ស្វាគមន៍មកកាន់ Khmer POS (Secure)</h2>
+                        <h2 class="text-xl font-bold">ស្វាគមន៍មកកាន់ Khmer POS (Optimized)</h2>
                         <p class="text-xs text-gray-400 mt-1">សូមបញ្ចូលលេខទូរស័ព្ទ និងលេខសម្ងាត់សុវត្ថិភាព</p>
                     </div>
                     <form onsubmit="handleAuth(event)" class="space-y-3 text-xs">
@@ -213,7 +212,6 @@
             }
         }
 
-        // --- DATA BACKUP & RESTORE FEATURES (Data Protection) ---
         function exportAppData() {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
             let downloadAnchor = document.createElement('a');
@@ -703,7 +701,7 @@
             let newInv = { invNo, customer, date, items: [...invoiceCart], total, currency: invoiceCurrency, status };
             appData.invoices.push(newInv);
             if(status === 'paid') {
-                appData.finances.push({ id: Date.now(), type: 'income', title: `លក់វិក្កយបត្រ ${invNo}`, amount: total, date });
+                appData.finances.push({ id: Date.now(), type: 'income', title: `លក់ទំនិញ (${customer}) [វិក្កយបត្រ ${invNo}]`, amount: total, date });
             }
             saveData();
             showExactReceiptPreview(newInv);
@@ -723,15 +721,12 @@
                         <div id="receiptPaper" class="bg-white text-gray-900 border-2 border-blue-400 p-3 rounded-lg space-y-2 select-all">
                             <div class="text-center border-b border-blue-300 pb-1.5">
                                 <h1 class="font-bold text-sm text-blue-900">${appData.store.name}</h1>
-                                <h2 class="font-bold text-xs text-blue-800 tracking-wider">លក់គ្រឿងបន្លាស់ម៉ូតូ</h2>
                                 <p class="text-[10px] text-gray-500">Tel: ${appData.store.phone}</p>
                             </div>
 
                             <div class="flex justify-between text-[11px] leading-tight">
                                 <div>
-                                    <p><b>ឈ្មោះអតិថិជន:</b> ${inv.customer}</p>
-                                    <p><b>អសយដ្ឋាន:</b> -</p>
-                                    <p><b>Tel:</b> -</p>
+                                    <p><b>អតិថិជន:</b> ${inv.customer}</p>
                                 </div>
                                 <div class="text-right">
                                     <p><b>N°</b> <span class="text-red-600 font-bold">${inv.invNo}</span></p>
@@ -744,21 +739,17 @@
                                     <thead>
                                         <tr class="bg-blue-100 text-blue-900 font-bold border-b border-blue-300">
                                             <th class="border border-blue-300 p-1 w-6">ល.រ</th>
-                                            <th class="border border-blue-300 p-1">កូដ</th>
-                                            <th class="border border-blue-300 p-1 text-left">ឈ្មោះទំនិញ</th>
-                                            <th class="border border-blue-300 p-1">ម៉ាក</th>
-                                            <th class="border border-blue-300 p-1 w-8">បរិមាណ</th>
+                                            <th class="border border-blue-300 p-1 text-left">ទំនិញ</th>
+                                            <th class="border border-blue-300 p-1 w-8">ចំនួន</th>
                                             <th class="border border-blue-300 p-1">តម្លៃរាយ</th>
-                                            <th class="border border-blue-300 p-1">តម្លៃសរុប</th>
+                                            <th class="border border-blue-300 p-1">សរុប</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         ${inv.items.map((item, idx) => `
                                             <tr class="border-b border-blue-200">
                                                 <td class="border border-blue-300 p-1">${idx + 1}</td>
-                                                <td class="border border-blue-300 p-1">${item.code || '-'}</td>
                                                 <td class="border border-blue-300 p-1 text-left font-bold">${item.name}</td>
-                                                <td class="border border-blue-300 p-1">${item.brand || '-'}</td>
                                                 <td class="border border-blue-300 p-1">${item.qty}</td>
                                                 <td class="border border-blue-300 p-1 text-right">${inv.currency}${item.price.toFixed(2)}</td>
                                                 <td class="border border-blue-300 p-1 text-right font-bold">${inv.currency}${(item.price * item.qty).toFixed(2)}</td>
@@ -777,11 +768,6 @@
                                     <span>ស្ថានភាព:</span>
                                     <span>${inv.status === 'paid' ? 'បានបង់ប្រាក់រួច' : 'ជំពាក់ប្រាក់'}</span>
                                 </div>
-                            </div>
-
-                            <div class="flex justify-between pt-2 text-[10px] text-gray-500">
-                                <div><p>អតិថិជន ....................</p></div>
-                                <div><p>អ្នកលក់ ....................</p></div>
                             </div>
                         </div>
 
@@ -804,24 +790,148 @@
             navigator.clipboard.writeText(text).then(() => alert("បានចម្លងព័ត៌មានវិក្កយបត្ររួចរាល់!"));
         }
 
-        // --- 4. FINANCE TAB ---
+        // --- 4. FINANCE TAB (UPDATED WITH SEPARATE BUTTONS & REPORTS) ---
         function renderFinanceTab(container) {
+            let todayStr = new Date().toISOString().split('T')[0];
+            let currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+
             let totalInc = appData.finances.filter(f => f.type === 'income').reduce((s, f) => s + f.amount, 0);
+            let totalExp = appData.finances.filter(f => f.type === 'expense').reduce((s, f) => s + f.amount, 0);
+            let netProfit = totalInc - totalExp;
+
+            // Daily & Monthly Calculations
+            let dailyInc = appData.finances.filter(f => f.type === 'income' && f.date === todayStr).reduce((s, f) => s + f.amount, 0);
+            let dailyExp = appData.finances.filter(f => f.type === 'expense' && f.date === todayStr).reduce((s, f) => s + f.amount, 0);
+
+            let monthlyInc = appData.finances.filter(f => f.type === 'income' && f.date.startsWith(currentMonthStr)).reduce((s, f) => s + f.amount, 0);
+            let monthlyExp = appData.finances.filter(f => f.type === 'expense' && f.date.startsWith(currentMonthStr)).reduce((s, f) => s + f.amount, 0);
+
             container.innerHTML = `
-                <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ចំណូលចំណាយ</h2></div>
-                <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl mb-3 text-xs">
-                    <p class="text-emerald-400">ចំណូលសរុប</p>
-                    <p class="text-lg font-bold text-emerald-400">$${totalInc.toFixed(2)}</p>
+                <div class="mb-3 flex justify-between items-center">
+                    <h2 class="text-base font-bold text-gray-100">ចំណូល ចំណាយ</h2>
+                    <div class="flex gap-1">
+                        <button onclick="openFinanceModal('income')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1 shadow">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> ចំណូល
+                        </button>
+                        <button onclick="openFinanceModal('expense')" class="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1 shadow">
+                            <i data-lucide="minus-circle" class="w-3.5 h-3.5"></i> ចំណាយ
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Overall Summary Card -->
+                <div class="grid grid-cols-3 gap-2 mb-3 text-xs">
+                    <div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-center">
+                        <p class="text-emerald-400 font-medium">ចំណូលសរុប</p>
+                        <p class="text-sm font-bold text-emerald-400 mt-0.5">$${totalInc.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-center">
+                        <p class="text-red-400 font-medium">ចំណាយសរុប</p>
+                        <p class="text-sm font-bold text-red-400 mt-0.5">$${totalExp.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-center">
+                        <p class="text-blue-400 font-medium">ចំណេញសុទ្ធ</p>
+                        <p class="text-sm font-bold text-blue-400 mt-0.5">$${netProfit.toFixed(2)}</p>
+                    </div>
+                </div>
+
+                <!-- Reports Section (Daily & Monthly) -->
+                <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl mb-3 space-y-2 text-xs">
+                    <h3 class="font-bold text-emerald-400 flex items-center gap-1">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4"></i> របាយការណ៍សង្ខេប
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2 pt-1 border-t border-gray-700">
+                        <div class="bg-gray-900 p-2 rounded border border-gray-800">
+                            <p class="font-bold text-gray-300 mb-1">📅 ប្រចាំថ្ងៃ (${todayStr})</p>
+                            <p class="text-emerald-400">ចំណូល: $${dailyInc.toFixed(2)}</p>
+                            <p class="text-red-400">ចំណាយ: $${dailyExp.toFixed(2)}</p>
+                        </div>
+                        <div class="bg-gray-900 p-2 rounded border border-gray-800">
+                            <p class="font-bold text-gray-300 mb-1">📊 ប្រចាំខែ (${currentMonthStr})</p>
+                            <p class="text-emerald-400">ចំណូល: $${monthlyInc.toFixed(2)}</p>
+                            <p class="text-red-400">ចំណាយ: $${monthlyExp.toFixed(2)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction List -->
                 <div class="space-y-2 text-xs">
-                    ${appData.finances.map(f => `
-                        <div class="bg-gray-800 p-2.5 rounded border border-gray-700 shadow-sm flex justify-between">
-                            <div><p class="font-bold text-gray-100">${f.title}</p><p class="text-gray-400 text-[10px]">${f.date}</p></div> <span class="font-bold text-emerald-400">+$${f.amount.toFixed(2)}</span>
+                    <h3 class="font-bold text-gray-300 mb-1">ប្រវត្តិប្រតិបត្តិការ</h3>
+                    ${appData.finances.length === 0 ? `<div class="text-center py-4 text-gray-500">មិនទាន់មានទិន្នន័យចំណូលចំណាយនៅឡើយ</div>` : 
+                        appData.finances.map(f => `
+                        <div class="bg-gray-800 p-2.5 rounded border border-gray-700 shadow-sm flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-100">${f.title}</p>
+                                <p class="text-gray-400 text-[10px]">${f.date}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold ${f.type === 'income' ? 'text-emerald-400' : 'text-red-400'}">
+                                    ${f.type === 'income' ? '+' : '-'}$${f.amount.toFixed(2)}
+                                </span>
+                                <button onclick="deleteFinance(${f.id})" class="text-gray-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
             `;
             lucide.createIcons();
+        }
+
+        function openFinanceModal(type) {
+            let today = new Date().toISOString().split('T')[0];
+            let isInc = type === 'income';
+            let modal = document.getElementById('modalContainer');
+            modal.innerHTML = `
+                <div class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                    <div class="bg-gray-900 text-white rounded-2xl w-full max-w-sm p-4 text-xs border border-gray-800">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-sm ${isInc ? 'text-emerald-400' : 'text-red-400'}">${isInc ? 'បន្ថែមចំណូលថ្មី' : 'បន្ថែមចំណាយថ្មី'}</h3>
+                            <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                        <form onsubmit="saveFinance(event, '${type}')" class="space-y-2.5">
+                            <div>
+                                <label class="block mb-1 text-gray-300">បរិយាយ (${isInc ? 'ចំណូល' : 'ចំណាយ'}លើអ្វី) *</label>
+                                <input type="text" id="fTitle" placeholder="ឧ. លក់ទំនិញដុំ, ទិញសាំងម៉ូតូ..." required class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-gray-300">ចំនួនទឹកប្រាក់ ($) *</label>
+                                <input type="number" step="0.01" id="fAmount" placeholder="0.00" required class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-gray-300">កាលបរិច្ឆេទ</label>
+                                <input type="date" id="fDate" value="${today}" required class="w-full p-2 border rounded">
+                            </div>
+                            <button type="submit" class="w-full ${isInc ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'} text-white py-2 rounded font-bold shadow">រក្សាទុក</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function saveFinance(e, type) {
+            e.preventDefault();
+            let title = document.getElementById('fTitle').value.trim();
+            let amount = parseFloat(document.getElementById('fAmount').value) || 0;
+            let date = document.getElementById('fDate').value;
+
+            if (amount <= 0) {
+                alert("សូមបញ្ចូលទឹកប្រាក់ឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            appData.finances.unshift({ id: Date.now(), type, title, amount, date });
+            saveData();
+            closeModal();
+            renderContent();
+        }
+
+        function deleteFinance(id) {
+            if (confirm("តើអ្នកចង់លុបទិន្នន័យនេះមែនទេ?")) {
+                appData.finances = appData.finances.filter(f => f.id !== id);
+                saveData();
+                renderContent();
+            }
         }
 
         // --- 5. STOCK TAB ---
@@ -830,7 +940,7 @@
                 <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ស្តុកទំនិញ</h2></div>
                 <div class="space-y-2 text-xs">
                     ${appData.products.map(p => `
-                        <div class="bg-gray-800 p-2.5 rounded border border-gray-700 shadow-sm flex justify-between">
+                        <div class="bg-gray-800 p-2.5 rounded border border-gray-700 shadow-sm flex justify-between items-center">
                             <div><p class="font-bold text-gray-100">${p.name}</p><p class="text-gray-400">កូដ: ${p.code}</p></div>
                             <span class="bg-gray-700 text-gray-200 px-2 py-1 rounded font-bold">ស្តុក: ${p.qty}</span>
                         </div>
@@ -840,29 +950,27 @@
             lucide.createIcons();
         }
 
-        // --- 6. SETTINGS TAB (WITH BACKUP & RESTORE DATA PROTECTION) ---
+        // --- 6. SETTINGS TAB ---
         function renderSettingsTab(container) {
             let isTrueAdmin = currentUser && (currentUser.phone === "+855 96 444 4679" || currentUser.phone === "0964444679");
 
             container.innerHTML = `
-                <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ការកំណត់ប្រព័ន្ធ (Secure)</h2></div>
+                <div class="mb-3"><h2 class="text-base font-bold text-gray-100">ការកំណត់ប្រព័ន្ធ</h2></div>
                 <div class="space-y-3 text-xs">
-                    <!-- Account Info -->
                     <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
                         <h3 class="font-bold text-emerald-400">គណនីរបស់អ្នក</h3>
                         <p class="text-gray-300">លេខទូរស័ព្ទ: <b class="text-white">${currentUser.phone}</b></p>
                         <button onclick="shareAccountToTelegram()" class="w-full bg-blue-600 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1">
-                            <i data-lucide="send" class="w-3.5 h-3.5"></i> ចែករំលែកគណនីទៅ Save Telegram
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i> ចែករំលែកគណនីទៅ Telegram
                         </button>
                         <button onclick="logoutUser()" class="w-full bg-red-950 text-red-400 border border-red-800 py-1.5 rounded font-bold">ចាកចេញពីគណនី (Logout)</button>
                     </div>
 
-                    <!-- Data Backup & Restore (Security Feature) -->
                     <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
                         <h3 class="font-bold text-blue-400 flex items-center gap-1">
-                            <i data-lucide="database" class="w-4 h-4"></i> ការពារ និងបម្រុងទុកទិន្នន័យ (Backup & Restore)
+                            <i data-lucide="database" class="w-4 h-4"></i> បម្រុងទុក និងទាញយកទិន្នន័យ (Backup & Restore)
                         </h3>
-                        <p class="text-gray-400 text-[11px]">ទាញយកទិន្នន័យស្តុក និងវិក្កយបត្រទុកដើម្បីការពារការបាត់បង់ពេលប្តូរទូរស័ព្ទ។</p>
+                        <p class="text-gray-400 text-[11px]">រក្សាទុកទិន្នន័យស្តុក និងវិក្កយបត្រទុកដើម្បីការពារការបាត់បង់។</p>
                         <div class="grid grid-cols-2 gap-2 pt-1">
                             <button onclick="exportAppData()" class="bg-blue-600 text-white py-2 rounded font-bold shadow flex items-center justify-center gap-1">
                                 <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Backup
@@ -874,138 +982,15 @@
                         </div>
                     </div>
 
-                    <!-- Store Settings -->
                     <form onsubmit="saveSettings(event)" class="bg-gray-800 p-3 rounded-xl border border-gray-700 shadow-sm space-y-2.5">
                         <h3 class="font-bold text-emerald-400">ព័ត៌មានហាង</h3>
                         <div><label class="block mb-1 text-gray-300">ឈ្មោះហាង</label><input type="text" id="sName" value="${appData.store.name}" required class="w-full p-2 border rounded"></div>
                         <div><label class="block mb-1 text-gray-300">លេខទូរស័ព្ទហាង</label><input type="text" id="sPhone" value="${appData.store.phone}" required class="w-full p-2 border rounded"></div>
-                        
-                        <!-- About Us Section -->
-                        <div class="pt-2 border-t border-gray-700 space-y-2">
-                            <div class="flex justify-between items-center">
-                                <label class="block font-bold text-blue-400">កន្លែង «អំពីយើង» & បណ្តាញ Mini Apps</label>
-                                ${isTrueAdmin ? `<span class="bg-blue-950 text-blue-400 border border-blue-800 text-[10px] px-2 py-0.5 rounded font-bold">Admin Mode</span>` : ''}
-                            </div>
-                            
-                            ${isTrueAdmin ? `
-                                <div class="bg-gray-900 text-white p-3 rounded-xl space-y-3 border border-gray-700">
-                                    <p class="text-[11px] text-yellow-400 font-bold">⚙️ កែសម្រួលព័ត៌មាន និងតំណភ្ជាប់ (Dark Mode)</p>
-                                    <div>
-                                        <label class="block text-gray-300 mb-1">ចំណងជើង:</label>
-                                        <input type="text" id="sAboutTitle" value="${appData.store.aboutTitle || ''}" class="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-300 mb-1">អត្ថបទពិពណ៌នា និង តំណភ្ជាប់ (Links):</label>
-                                        <textarea id="sAboutDesc" rows="3" class="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded text-xs">${appData.store.aboutDesc || ''}</textarea>
-                                    </div>
-                                    <div>
-                                        <div class="flex justify-between items-center mb-1">
-                                            <label class="text-gray-300 font-bold">បញ្ជី Mini Apps:</label>
-                                            <button type="button" onclick="addMiniAppField()" class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">+ បន្ថែម Mini App</button>
-                                        </div>
-                                        <div id="miniAppsListContainer" class="space-y-2 max-h-48 overflow-y-auto">
-                                             ${(appData.store.miniapps || []).map((app, idx) => `
-                                                <div class="mini-app-row bg-gray-800 p-2 rounded border border-gray-700 space-y-1 text-xs">
-                                                    <div class="flex justify-between">
-                                                        <span class="text-gray-400">Mini App #${idx + 1}</span>
-                                                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 text-[10px]">លុប</button>
-                                                    </div>
-                                                    <input type="text" placeholder="ឈ្មោះ Mini App" value="${app.name}" class="app-name w-full p-1 bg-gray-900 border border-gray-700 text-white rounded">
-                                                    <input type="text" placeholder="ពិពណ៌នាខ្លី" value="${app.desc}" class="app-desc w-full p-1 bg-gray-900 border border-gray-700 text-white rounded">
-                                                    <input type="text" placeholder="Telegram Link" value="${app.link}" class="app-link w-full p-1 bg-gray-900 border border-gray-700 text-white rounded">
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 space-y-2 text-xs">
-                                    <h4 class="font-bold text-gray-100 text-sm">${appData.store.aboutTitle || 'អំពីយើង'}</h4>
-                                    <p class="text-gray-300 leading-relaxed">${formatTextWithLinks(appData.store.aboutDesc || '')}</p>
-                                    
-                                    <div class="pt-2 border-t border-gray-800">
-                                        <p class="font-bold text-emerald-400 mb-1.5">🔗 បណ្តាញ Mini Apps ផ្លូវការ:</p>
-                                        <div class="space-y-1.5">
-                                            ${(appData.store.miniapps || []).map(app => `
-                                                <a href="${app.link}" target="_blank" class="block bg-gray-800 p-2 rounded border border-gray-700 shadow-sm hover:border-emerald-500 transition">
-                                                    <p class="font-bold text-emerald-400">${app.name}</p>
-                                                    <p class="text-[10px] text-gray-400">${app.desc}</p>
-                                                </a>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-
                         <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow mt-2">រក្សាទុក</button>
                     </form>
-
-                    <!-- Privacy Policy Section -->
-                    <div class="bg-gray-800 p-3 rounded-xl border border-gray-700 shadow-sm space-y-2 text-xs">
-                        <h3 class="font-bold text-emerald-400 flex items-center gap-1">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i> ឯកជនភាព និងគោលការណ៍សុវត្ថិភាព
-                        </h3>
-                        <p class="text-gray-300 leading-relaxed">
-                            ប្រព័ន្ធ Khmer POS Secure ត្រូវបានបំពាក់នូវប្រព័ន្ធការពារទិន្នន័យកម្រិតខ្ពស់ និងការអ៊ិនគ្រីបលេខសម្ងាត់យ៉ាងម៉ត់ចត់...
-                        </p>
-                        
-                        ${showFullPrivacy ? `
-                            <div class="space-y-2 pt-2 border-t border-gray-700 text-gray-300 leading-relaxed">
-                                <p><b>១. ការការពារទិន្នន័យ (Data Privacy):</b> ទិន្នន័យត្រូវបានអ៊ិនគ្រីប និងបម្រុងទុកដោយសុវត្ថិភាពខ្ពស់។</p>
-                                <p><b>២. ការបម្រុងទុក (Backup):</b> អ្នកអាច Export ទុកក្នុង Telegram ឬ Google Drive បានគ្រប់ពេល។</p>
-                            </div>
-                        ` : ''}
-
-                        <button type="button" onclick="togglePrivacy()" class="w-full bg-gray-700 text-emerald-400 py-1.5 rounded font-bold hover:bg-gray-600 transition mt-1">
-                            ${showFullPrivacy ? 'បង្ហាញតិចជាងមុន (See Less)' : 'អានបន្ថែម (See More)'}
-                        </button>
-                    </div>
-
-                    <!-- Premium Plan Card -->
-                    <div class="bg-gray-900 text-white p-4 rounded-xl border border-gray-700 shadow-lg space-y-3">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-yellow-400 text-gray-900 p-1.5 rounded-full"><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
-                            <div>
-                                <h3 class="font-bold text-sm">គម្រោង Premium</h3>
-                                <p class="text-[10px] text-gray-300">ស្ថានភាព: <span class="${appData.isPremium ? 'text-green-400 font-bold' : 'text-yellow-400 font-bold'}">${appData.isPremium ? 'សកម្ម (Active)' : 'សាកល្បងឥតគិតថ្លៃ ១ ខែ'}</span></p>
-                            </div>
-                        </div>
-                        <button onclick="openPremiumModal()" class="w-full bg-yellow-400 text-gray-900 py-2 rounded-lg font-bold hover:bg-yellow-500 shadow text-xs">
-                            ${appData.isPremium ? 'គ្រប់គ្រង Premium' : 'ទិញ / បញ្ចូលកូដ Premium ($2/ខែ)'}
-                        </button>
-                    </div>
                 </div>
             `;
             lucide.createIcons();
-        }
-
-        function formatTextWithLinks(text) {
-            let urlRegex = /(https?:\/\/[^\s]+)/g;
-            return text.replace(urlRegex, function(url) {
-                return `<a href="${url}" target="_blank" class="text-blue-400 underline font-medium">${url}</a>`;
-            });
-        }
-
-        function togglePrivacy() {
-            showFullPrivacy = !showFullPrivacy;
-            renderContent();
-        }
-
-        function addMiniAppField() {
-            let container = document.getElementById('miniAppsListContainer');
-            let div = document.createElement('div');
-            div.className = "mini-app-row bg-gray-800 p-2 rounded border border-gray-700 space-y-1 text-xs mt-2";
-            div.innerHTML = `
-                <div class="flex justify-between">
-                    <span class="text-gray-400">Mini App ថ្មី</span>
-                    <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 text-[10px]">លុប</button>
-                </div>
-                <input type="text" placeholder="ឈ្មោះ Mini App" class="app-name w-full p-1 bg-gray-900 border border-gray-700 text-white rounded">
-                <input type="text" placeholder="ពិពណ៌នាខ្លី" class="app-desc w-full p-1 bg-gray-900 border border-gray-700 text-white rounded">
-                <input type="text" placeholder="Telegram Link" class="app-link w-full p-1 bg-gray-900 border border-gray-700 text-white rounded">
-            `;
-            container.appendChild(div);
         }
 
         function shareAccountToTelegram() {
@@ -1022,70 +1007,9 @@
             e.preventDefault();
             appData.store.name = document.getElementById('sName').value;
             appData.store.phone = document.getElementById('sPhone').value;
-            
-            let isTrueAdmin = currentUser && (currentUser.phone === "+855 96 444 4679" || currentUser.phone === "0964444679");
-            if (isTrueAdmin) {
-                let titleInput = document.getElementById('sAboutTitle');
-                let descInput = document.getElementById('sAboutDesc');
-                if (titleInput) appData.store.aboutTitle = titleInput.value;
-                if (descInput) appData.store.aboutDesc = descInput.value;
-
-                let rows = document.querySelectorAll('.mini-app-row');
-                let apps = [];
-                rows.forEach(row => {
-                    let name = row.querySelector('.app-name').value.trim();
-                    let desc = row.querySelector('.app-desc').value.trim();
-                    let link = row.querySelector('.app-link').value.trim();
-                    if (name) {
-                        apps.push({ name, desc, link });
-                    }
-                });
-                appData.store.miniapps = apps;
-            }
-
             saveData();
             alert("រក្សាទុកបានជោគជ័យ!");
             renderContent();
-        }
-
-        function openPremiumModal() {
-            let modal = document.getElementById('modalContainer');
-            modal.innerHTML = `
-                <div class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-                    <div class="bg-gray-900 text-white rounded-2xl w-full max-w-md p-5 text-xs space-y-4 border border-gray-800">
-                        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                            <h3 class="font-bold text-sm text-yellow-400">ទូទាត់ប្រាក់កម្រិត Premium</h3>
-                            <button onclick="closeModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-                        </div>
-                        <div class="bg-gray-800 p-3 rounded-xl space-y-1.5 border border-gray-700">
-                            <p class="font-bold text-white">ព័ត៌មានគណនី ABA:</p>
-                            <p class="text-gray-300">ឈ្មោះ: <b class="text-white">MOM SAMEAN</b></p>
-                            <p class="text-gray-300">លេខគណនី: <b class="text-yellow-400 font-mono text-sm">000 705 882</b></p>
-                        </div>
-                        <div class="space-y-2 pt-2 border-t border-gray-800">
-                            <label class="block font-medium text-gray-300">បញ្ចូលលេខកូដសកម្មភាព (Activation Code):</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="activationCodeInput" placeholder="បញ្ចូលលេខកូដ..." class="flex-1 p-2 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:border-yellow-400">
-                                <button onclick="verifyActivationCode()" class="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-bold hover:bg-yellow-500">បញ្ជាក់</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        function verifyActivationCode() {
-            let code = document.getElementById('activationCodeInput').value.trim();
-            if (code === "SAMEAN168" || code === "PREMIUM2026") {
-                appData.isPremium = true;
-                saveData();
-                alert("អបអរសាទរ! គណនីរបស់អ្នកត្រូវបានដំឡើងជា Premium ជោគជ័យ!");
-                closeModal();
-                renderContent();
-            } else {
-                alert("លេខកូដមិនត្រឹមត្រូវទេ!");
-            }
         }
 
         function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
