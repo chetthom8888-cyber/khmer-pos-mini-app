@@ -143,8 +143,10 @@
             invoices: [],
             finances: [],
             aboutInfo: {
-                title: "ហាងលក់ទំនិញខេមរៈ - ស្វាគមន៍វត្តមានលោកអ្នក",
-                desc: "យើងខ្ញុំផ្តល់ជូននូវទំនិញដែលមានគុណភាពខ្ពស់ និងតម្លៃសមរម្យ។ គ្រប់គ្រងទំនិញ និងវិក្កយបត្រយ៉ាងងាយស្រួលតាមរយៈ Mini App។",
+                title: "សេចក្តីជូនដំណឹង និងព័ត៌មានពិសេសពីហាង",
+                desc: "សូមស្វាគមន៍មកកាន់ Khmer Mini POS ។ លោកអ្នកអាចប្រើប្រាស់មុខងារគ្រប់គ្រងស្តុក វិក្កយបត្រ និងចំណូលចំណាយបានយ៉ាងងាយស្រួល។",
+                link: "https://t.me/SameanMom168",
+                linkText: "ទំនាក់ទំនងក្រុមការងារ Telegram",
                 date: "2026-07-15"
             },
             installDate: null
@@ -225,6 +227,10 @@
                     appData = JSON.parse(savedData); 
                     let ga = localStorage.getItem(GLOBAL_ABOUT_KEY);
                     if(ga) appData.aboutInfo = JSON.parse(ga);
+                    if (!appData.installDate) {
+                        appData.installDate = new Date().toISOString();
+                        saveData();
+                    }
                 } catch(e) {}
             } else {
                 appData.installDate = new Date().toISOString();
@@ -828,7 +834,7 @@
         // --- 4. FINANCE TAB (Daily & Monthly Reports) ---
         function renderFinanceTab(container) {
             let todayStr = new Date().toISOString().split('T')[0];
-            let currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+            let currentMonthStr = todayStr.substring(0, 7);
 
             let dailyInc = appData.finances.filter(f => f.date === todayStr && f.type === 'income').reduce((s, f) => s + f.amountUSD, 0);
             let dailyExp = appData.finances.filter(f => f.date === todayStr && f.type === 'expense').reduce((s, f) => s + f.amountUSD, 0);
@@ -849,7 +855,6 @@
                     </div>
                 </div>
 
-                <!-- របាយការណ៍ប្រចាំថ្ងៃ និងប្រចាំខែ -->
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="bg-gray-800 border border-emerald-700/60 p-2.5 rounded-xl text-xs space-y-1">
                         <p class="text-emerald-400 font-bold border-b border-gray-700 pb-1">📅 ប្រចាំថ្ងៃ (ថ្ងៃនេះ)</p>
@@ -1002,36 +1007,67 @@
             lucide.createIcons();
         }
 
-        // --- 6. ABOUT US / PROMOTIONS TAB (Managed Solely by Admin @SameanMom168) ---
+        // --- 6. ABOUT US & PREMIUM ACCOUNT TAB ---
         function renderAboutTab(container) {
+            let installD = new Date(appData.installDate || new Date());
+            let expiryDate = new Date(installD.getTime() + (30 * 24 * 60 * 60 * 1000));
+            let now = new Date();
+            let daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) daysLeft = 0;
+
             let isAdmin = (currentUserUsername === ADMIN_USERNAME || currentUserUsername === "@SameanMom168");
             let about = appData.aboutInfo;
 
             container.innerHTML = `
                 <div class="mb-3"><h2 class="text-base font-bold text-gray-100">អំពីយើង និងសេចក្តីជូនដំណឹង</h2></div>
                 <div class="space-y-3 text-xs">
+                    <!-- Premium Account Counter -->
+                    <div class="bg-gradient-to-r from-amber-950 to-gray-900 border border-amber-600/50 p-3 rounded-xl space-y-1.5 shadow">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-amber-400 flex items-center gap-1"><i data-lucide="crown" class="w-4 h-4"></i> ប្រព័ន្ធ Premium Account</h3>
+                            <span class="bg-amber-500 text-black px-2 py-0.5 rounded text-[10px] font-bold">Free 30 Days</span>
+                        </div>
+                        <p class="text-gray-300 text-[11px]">គណនីរបស់អ្នកឥតគិតថ្លៃចំនួន ៣០ ថ្ងៃដំបូង។ នៅសល់ពេលរាប់ថយក្រោយ៖ <b class="text-amber-300">${daysLeft} ថ្ងៃ</b></p>
+                    </div>
+
+                    <!-- Admin Announcement / About Us -->
                     <div class="bg-gray-800 border border-gray-700 p-4 rounded-xl space-y-2 shadow">
                         <h3 class="font-bold text-emerald-400 text-sm">${about.title}</h3>
                         <p class="text-gray-300 leading-relaxed">${about.desc}</p>
+                        ${about.link ? `
+                            <div class="pt-1">
+                                <a href="${about.link}" target="_blank" class="inline-block bg-blue-600 text-white px-3 py-1.5 rounded font-bold shadow text-xs">
+                                    🔗 ${about.linkText || 'ចុចទីនេះដើម្បីចូលរួម'}
+                                </a>
+                            </div>
+                        ` : ''}
                         <p class="text-[10px] text-gray-500 text-right">កាលបរិច្ឆេទធ្វើបច្ចុប្បន្នភាព៖ ${about.date}</p>
+                    </div>
+
+                    <!-- Guide & Benefits -->
+                    <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl space-y-2">
+                        <h3 class="font-bold text-amber-400 flex items-center gap-1"><i data-lucide="help-circle" class="w-4 h-4"></i> អត្ថប្រយោជន៍ និងការណែនាំ Premium</h3>
+                        <ul class="list-disc list-inside text-gray-300 space-y-1 text-[11px]">
+                            <li>ធ្វើសមកាលកម្មទិន្នន័យ (Sync) ស្វ័យប្រវត្តគ្រប់ឧបករណ៍។</li>
+                            <li>បង្កើតវិក្កយបត្រ និងបោះពុម្ពដោយផ្ទាល់។</li>
+                            <li>តាមដានរបាយការណ៍ចំណូលចំណាយប្រចាំថ្ងៃ និងប្រចាំខែ។</li>
+                        </ul>
                     </div>
 
                     ${isAdmin ? `
                         <div class="bg-emerald-950/60 border border-emerald-600 p-3 rounded-xl space-y-2">
                             <h3 class="font-bold text-emerald-400 flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin Panel (@SameanMom168)</h3>
-                            <p class="text-gray-300 text-[11px]">កែប្រែព័ត៌មាន "អំពីយើង" និងផ្ញើជូនគ្រប់ Telegram App ទាំងអស់ភ្លាមៗស្វ័យប្រវត្ត។</p>
+                            <p class="text-gray-300 text-[11px]">កែប្រែព័ត៌មាន និង Link ផ្ញើជូនគ្រប់ Telegram App ទាំងអស់ភ្លាមៗស្វ័យប្រវត្ត។</p>
                             
                             <form onsubmit="saveAdminAboutInfo(event)" class="space-y-2 pt-1">
                                 <div><label class="block mb-1">ចំណងជើង *</label><input type="text" id="adminAboutTitle" value="${about.title}" required class="w-full p-2 border rounded"></div>
                                 <div><label class="block mb-1">ព័ត៌មានលម្អិត *</label><textarea id="adminAboutDesc" rows="3" required class="w-full p-2 border rounded">${about.desc}</textarea></div>
+                                <div><label class="block mb-1">តំណភ្ជាប់ URL (Link)</label><input type="text" id="adminAboutLink" value="${about.link || ''}" placeholder="https://t.me/..." class="w-full p-2 border rounded"></div>
+                                <div><label class="block mb-1">អត្ថបទនៅលើប៊ូតុង Link</label><input type="text" id="adminAboutLinkText" value="${about.linkText || ''}" placeholder="ឧ. ចូលក្រុម Telegram" class="w-full p-2 border rounded"></div>
                                 <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow">រក្សាទុក និង Broadcast ភ្លាមៗ</button>
                             </form>
                         </div>
-                    ` : `
-                        <div class="text-center py-2 text-gray-500 text-[11px]">
-                            គ្រប់គ្រងដោយ Admin Panel (${ADMIN_USERNAME}) ម្នាក់គត់។
-                        </div>
-                    `}
+                    ` : ''}
                 </div>
             `;
             lucide.createIcons();
@@ -1041,9 +1077,11 @@
             e.preventDefault();
             let title = document.getElementById('adminAboutTitle').value;
             let desc = document.getElementById('adminAboutDesc').value;
+            let link = document.getElementById('adminAboutLink').value;
+            let linkText = document.getElementById('adminAboutLinkText').value;
             let date = new Date().toISOString().split('T')[0];
 
-            let newAbout = { title, desc, date };
+            let newAbout = { title, desc, link, linkText, date };
             appData.aboutInfo = newAbout;
 
             localStorage.setItem(GLOBAL_ABOUT_KEY, JSON.stringify(newAbout));
@@ -1066,6 +1104,13 @@
                         <div class="bg-gray-800 p-3 rounded-xl border border-emerald-600/50 space-y-2">
                             <p class="font-bold text-emerald-300 text-sm">${about.title}</p>
                             <p class="text-gray-200 text-xs leading-relaxed">${about.desc}</p>
+                            ${about.link ? `
+                                <div class="pt-2">
+                                    <a href="${about.link}" target="_blank" class="block text-center bg-blue-600 text-white py-2 rounded font-bold shadow">
+                                        🔗 ${about.linkText || 'ចុចទីនេះដើម្បីចូលរួម'}
+                                    </a>
+                                </div>
+                            ` : ''}
                             <p class="text-[10px] text-gray-400 text-right">${about.date}</p>
                         </div>
                         <button onclick="closeModal()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow">យល់ព្រម / បិទ</button>
