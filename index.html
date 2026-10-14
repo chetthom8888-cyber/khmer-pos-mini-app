@@ -113,7 +113,6 @@
 
     <!-- Application Script -->
     <script>
-        // TODO: ជំនួសតំលៃ firebaseConfig ខាងក្រោមដោយទិន្នន័យដែលបានពី Firebase Console របស់បង
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -124,8 +123,10 @@
             appId: "YOUR_APP_ID"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        try {
+            firebase.initializeApp(firebaseConfig);
+        } catch(e) {}
+        const db = firebase.database ? firebase.database() : null;
 
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.expand(); }
@@ -160,7 +161,6 @@
                 currentUserUsername = "guest_user";
             }
 
-            // Auto-login configuration: ចូលដោយស្វ័យប្រវត្តិដោយផ្អែកលើ Telegram ID ឬ Code ដែលមានស្រាប់
             if (!currentStoreCode) {
                 if (tgUser && tgUser.id) {
                     currentStoreCode = `TG-${tgUser.id}`;
@@ -170,25 +170,28 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            // Real-time listener from Firebase for Announcements
-            db.ref('global_announcements').on('value', (snapshot) => {
-                let data = snapshot.val();
-                if (data) {
-                    appData.announcements = data;
-                    if (data.length > 0) {
-                        triggerAutoPopupAnnouncement(data[0]);
+            if (db) {
+                db.ref('global_announcements').on('value', (snapshot) => {
+                    let data = snapshot.val();
+                    if (data) {
+                        appData.announcements = data;
+                        if (currentTab === 'about') renderContent();
                     }
-                    if (currentTab === 'about') renderContent();
-                }
-            });
+                });
+            }
 
             let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
             if (savedData) {
                 try { 
-                    appData = JSON.parse(savedData); 
-                    if (!appData.installDate) {
-                        appData.installDate = new Date().toISOString();
-                        saveData();
+                    let parsed = JSON.parse(savedData);
+                    if (parsed) {
+                        appData.store = parsed.store || appData.store;
+                        appData.products = parsed.products || appData.products;
+                        appData.categories = parsed.categories || appData.categories;
+                        appData.customers = parsed.customers || appData.customers;
+                        appData.invoices = parsed.invoices || appData.invoices;
+                        appData.finances = parsed.finances || appData.finances;
+                        appData.installDate = parsed.installDate || new Date().toISOString();
                     }
                 } catch(e) {}
             } else {
@@ -247,6 +250,7 @@
         function renderContent() {
             updateHeaderDate();
             let main = document.getElementById('mainContent');
+            if (!main) return;
             if (currentTab === 'products') renderProductsTab(main);
             else if (currentTab === 'customers') renderCustomersTab(main);
             else if (currentTab === 'invoices') renderInvoicesTab(main);
@@ -254,7 +258,7 @@
             else if (currentTab === 'stock') renderStockTab(main);
             else if (currentTab === 'about') renderAboutTab(main);
             else if (currentTab === 'settings') renderSettingsTab(main);
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e) {}
         }
 
         // --- 1. PRODUCTS TAB ---
@@ -294,7 +298,7 @@
                 </div>
                 <div id="productListContainer" class="space-y-2.5">${renderProductItems()}</div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function renderProductItems(query = '') {
@@ -325,7 +329,7 @@
         function filterProducts() {
             let q = document.getElementById('productSearch').value;
             document.getElementById('productListContainer').innerHTML = renderProductItems(q);
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function setCategory(cat) { activeCategory = cat; renderContent(); }
@@ -364,7 +368,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function updateCategoryItem(idx) {
@@ -415,7 +419,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function saveProduct(e, id) {
@@ -461,7 +465,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
             setTimeout(() => {
                 const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } }, false);
                 scanner.render((decodedText) => {
@@ -507,7 +511,7 @@
                     `).join('')}
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function openCustomerModal() {
@@ -528,7 +532,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function saveCustomer(e) {
@@ -630,7 +634,7 @@
                     <button onclick="finalizeInvoice()" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow">ចេញវិក្កយបត្រ</button>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function openProductPicker() {
@@ -656,7 +660,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function addCartItem(productId) {
@@ -787,7 +791,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         // --- 4. FINANCE TAB (Daily & Monthly Reports) ---
@@ -849,7 +853,7 @@
                     `).join('')}
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function openFinanceModal(type) {
@@ -889,7 +893,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function saveFinance(e, type) {
@@ -930,7 +934,7 @@
                     `).join('')}
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function openMonthlyStockReport() {
@@ -963,7 +967,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         // --- 6. ABOUT US & MULTIPLE ANNOUNCEMENTS TAB ---
@@ -1037,7 +1041,7 @@
                     ` : ''}
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function saveNewAnnouncement(e) {
@@ -1051,19 +1055,28 @@
             let newAnnounce = { id: Date.now(), title, desc, link, linkText, date };
             appData.announcements.unshift(newAnnounce);
 
-            db.ref('global_announcements').set(appData.announcements).then(() => {
-                alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
-                triggerAutoPopupAnnouncement(newAnnounce);
+            if (db) {
+                db.ref('global_announcements').set(appData.announcements).then(() => {
+                    alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
+                    triggerAutoPopupAnnouncement(newAnnounce);
+                    renderContent();
+                });
+            } else {
+                alert("បានបន្ថែមជោគជ័យ!");
                 renderContent();
-            });
+            }
         }
 
         function deleteAnnouncement(id) {
             if (confirm("តើអ្នកចង់លុបសេចក្តីជូនដំណឹងនេះមែនទេ?")) {
                 appData.announcements = appData.announcements.filter(item => item.id !== id);
-                db.ref('global_announcements').set(appData.announcements).then(() => {
+                if (db) {
+                    db.ref('global_announcements').set(appData.announcements).then(() => {
+                        renderContent();
+                    });
+                } else {
                     renderContent();
-                });
+                }
             }
         }
 
@@ -1092,7 +1105,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         // --- 7. SETTINGS TAB ---
@@ -1121,7 +1134,7 @@
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e){}
         }
 
         function saveSettings(e) {
@@ -1143,6 +1156,7 @@
 
         function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
 
+        // Initialize App directly on load
         initApp();
     </script>
 </body>
