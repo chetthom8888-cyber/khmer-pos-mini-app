@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Cloud Edition)</title>
+    <title>ហាងលក់ទំនិញខេមរៈ (Khmer Mini POS - Web Edition)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -14,9 +14,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Html5-Qrcode -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <!-- Firebase App & Realtime Database SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
@@ -49,8 +46,24 @@
 </head>
 <body class="text-gray-100">
 
+    <!-- Auth / Login Wrapper -->
+    <div id="authWrapper" class="app-container flex flex-col items-center justify-center p-6 space-y-4">
+        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl w-full max-w-sm text-center space-y-4 shadow-xl">
+            <div class="bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto font-bold text-xl">POS</div>
+            <h1 class="font-bold text-base text-gray-100">Khmer Mini POS Login</h1>
+            <p class="text-xs text-gray-400">ចូលដោយប្រើប្រាស់ Code ID របស់អ្នក ដើម្បីទាញយកទិន្នន័យលើឧបករណ៍ផ្សេង។</p>
+            
+            <div class="space-y-2 text-left text-xs">
+                <label class="block text-gray-300 font-medium">បញ្ចូល Code ID របស់អ្នក៖</label>
+                <input type="text" id="loginCodeInput" placeholder="ឧ. POS-987654 ឬ Telegram ID" class="w-full p-2.5 border rounded-lg text-center font-bold tracking-widest text-emerald-400 text-sm">
+            </div>
+
+            <button onclick="loginWithCustomCode()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold shadow text-xs">ចូលប្រើប្រាស់ប្រព័ន្ធ</button>
+        </div>
+    </div>
+
     <!-- Main App Wrapper -->
-    <div id="appWrapper" class="app-container flex flex-col justify-between">
+    <div id="appWrapper" class="app-container flex flex-col justify-between hidden">
         <!-- Header -->
         <header class="bg-emerald-800 text-white p-4 sticky top-0 z-40 shadow-md">
             <div class="flex justify-between items-center">
@@ -103,7 +116,7 @@
                 </button>
             </div>
             <div class="bg-gray-950 text-center py-1 text-[10px] text-gray-500 border-t border-gray-800 select-all">
-                Khmer Mini POS Cloud Edition (@KhmerPosAppBot)
+                Khmer Mini POS Web Edition (Telegram Cloud Sync)
             </div>
         </nav>
     </div>
@@ -113,21 +126,6 @@
 
     <!-- Application Script -->
     <script>
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        try {
-            firebase.initializeApp(firebaseConfig);
-        } catch(e) {}
-        const db = firebase.database ? firebase.database() : null;
-
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.expand(); }
 
@@ -151,6 +149,7 @@
         };
 
         const ADMIN_USERNAME = "@SameanMom168";
+        const GLOBAL_ANNOUNCE_KEY = "khmer_pos_global_announcements_v3";
 
         function initApp() {
             let tgUser = tg?.initDataUnsafe?.user;
@@ -170,36 +169,109 @@
                 localStorage.setItem('khmer_pos_active_code', currentStoreCode);
             }
 
-            if (db) {
-                db.ref('global_announcements').on('value', (snapshot) => {
-                    let data = snapshot.val();
-                    if (data) {
-                        appData.announcements = data;
-                        if (currentTab === 'about') renderContent();
+            // Load Announcements (from Telegram Cloud Storage if available, else localStorage backup)
+            loadGlobalAnnouncements((cloudData) => {
+                if (cloudData) {
+                    try {
+                        appData.announcements = JSON.parse(cloudData);
+                    } catch(e){}
+                } else {
+                    let localAnnounce = localStorage.getItem(GLOBAL_ANNOUNCE_KEY);
+                    if (localAnnounce) {
+                        try { appData.announcements = JSON.parse(localAnnounce); } catch(e){}
+                    }
+                }
+
+                let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
+                if (savedData) {
+                    try { 
+                        appData = JSON.parse(savedData); 
+                        if (!appData.installDate) {
+                            appData.installDate = new Date().toISOString();
+                            saveData();
+                        }
+                    } catch(e) {}
+                } else {
+                    appData.installDate = new Date().toISOString();
+                    saveData();
+                }
+
+                updateHeaderDate();
+                document.getElementById('authWrapper').classList.add('hidden');
+                document.getElementById('appWrapper').classList.remove('hidden');
+                renderContent();
+
+                // Start polling mechanism to check updates from Admin across all devices every 2 seconds
+                setInterval(pollGlobalAnnouncements, 2000);
+            });
+        }
+
+        function loadGlobalAnnouncements(callback) {
+            if (tg && tg.CloudStorage) {
+                tg.CloudStorage.getItem(GLOBAL_ANNOUNCE_KEY, (err, value) => {
+                    if (!err && value) {
+                        callback(value);
+                    } else {
+                        callback(null);
                     }
                 });
+            } else {
+                callback(localStorage.getItem(GLOBAL_ANNOUNCE_KEY));
             }
+        }
 
+        function saveGlobalAnnouncements(dataObj, onSuccess) {
+            let jsonStr = JSON.stringify(dataObj);
+            localStorage.setItem(GLOBAL_ANNOUNCE_KEY, jsonStr);
+            if (tg && tg.CloudStorage) {
+                tg.CloudStorage.setItem(GLOBAL_ANNOUNCE_KEY, jsonStr, (err, stored) => {
+                    if (onSuccess) onSuccess();
+                });
+            } else {
+                if (onSuccess) onSuccess();
+            }
+        }
+
+        let lastPollStr = "";
+        function pollGlobalAnnouncements() {
+            loadGlobalAnnouncements((cloudData) => {
+                if (cloudData && cloudData !== lastPollStr) {
+                    lastPollStr = cloudData;
+                    try {
+                        let parsed = JSON.parse(cloudData);
+                        if (JSON.stringify(parsed) !== JSON.stringify(appData.announcements)) {
+                            appData.announcements = parsed;
+                            if (parsed.length > 0) {
+                                triggerAutoPopupAnnouncement(parsed[0]);
+                            }
+                            if (currentTab === 'about') renderContent();
+                        }
+                    } catch(e){}
+                }
+            });
+        }
+
+        function loginWithCustomCode() {
+            let inputCode = document.getElementById('loginCodeInput').value.trim();
+            if (!inputCode) { alert("សូមបញ្ចូល Code ID ជាមុនសិន!"); return; }
+            currentStoreCode = inputCode;
+            localStorage.setItem('khmer_pos_active_code', currentStoreCode);
+            
             let savedData = localStorage.getItem(`khmer_pos_data_${currentStoreCode}`);
             if (savedData) {
                 try { 
-                    let parsed = JSON.parse(savedData);
-                    if (parsed) {
-                        appData.store = parsed.store || appData.store;
-                        appData.products = parsed.products || appData.products;
-                        appData.categories = parsed.categories || appData.categories;
-                        appData.customers = parsed.customers || appData.customers;
-                        appData.invoices = parsed.invoices || appData.invoices;
-                        appData.finances = parsed.finances || appData.finances;
-                        appData.installDate = parsed.installDate || new Date().toISOString();
+                    appData = JSON.parse(savedData); 
+                    if (!appData.installDate) {
+                        appData.installDate = new Date().toISOString();
+                        saveData();
                     }
                 } catch(e) {}
             } else {
                 appData.installDate = new Date().toISOString();
                 saveData();
             }
-
-            updateHeaderDate();
+            document.getElementById('authWrapper').classList.add('hidden');
+            document.getElementById('appWrapper').classList.remove('hidden');
             renderContent();
         }
 
@@ -250,7 +322,6 @@
         function renderContent() {
             updateHeaderDate();
             let main = document.getElementById('mainContent');
-            if (!main) return;
             if (currentTab === 'products') renderProductsTab(main);
             else if (currentTab === 'customers') renderCustomersTab(main);
             else if (currentTab === 'invoices') renderInvoicesTab(main);
@@ -258,7 +329,7 @@
             else if (currentTab === 'stock') renderStockTab(main);
             else if (currentTab === 'about') renderAboutTab(main);
             else if (currentTab === 'settings') renderSettingsTab(main);
-            try { lucide.createIcons(); } catch(e) {}
+            lucide.createIcons();
         }
 
         // --- 1. PRODUCTS TAB ---
@@ -298,7 +369,7 @@
                 </div>
                 <div id="productListContainer" class="space-y-2.5">${renderProductItems()}</div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function renderProductItems(query = '') {
@@ -329,7 +400,7 @@
         function filterProducts() {
             let q = document.getElementById('productSearch').value;
             document.getElementById('productListContainer').innerHTML = renderProductItems(q);
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function setCategory(cat) { activeCategory = cat; renderContent(); }
@@ -368,7 +439,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function updateCategoryItem(idx) {
@@ -419,7 +490,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function saveProduct(e, id) {
@@ -465,7 +536,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
             setTimeout(() => {
                 const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } }, false);
                 scanner.render((decodedText) => {
@@ -511,7 +582,7 @@
                     `).join('')}
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function openCustomerModal() {
@@ -532,7 +603,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function saveCustomer(e) {
@@ -634,7 +705,7 @@
                     <button onclick="finalizeInvoice()" class="w-full bg-emerald-600 text-white py-2 rounded font-bold shadow">ចេញវិក្កយបត្រ</button>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function openProductPicker() {
@@ -660,7 +731,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function addCartItem(productId) {
@@ -791,7 +862,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         // --- 4. FINANCE TAB (Daily & Monthly Reports) ---
@@ -853,7 +924,7 @@
                     `).join('')}
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function openFinanceModal(type) {
@@ -893,7 +964,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function saveFinance(e, type) {
@@ -934,7 +1005,7 @@
                     `).join('')}
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function openMonthlyStockReport() {
@@ -967,7 +1038,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         // --- 6. ABOUT US & MULTIPLE ANNOUNCEMENTS TAB ---
@@ -1041,7 +1112,7 @@
                     ` : ''}
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function saveNewAnnouncement(e) {
@@ -1055,28 +1126,19 @@
             let newAnnounce = { id: Date.now(), title, desc, link, linkText, date };
             appData.announcements.unshift(newAnnounce);
 
-            if (db) {
-                db.ref('global_announcements').set(appData.announcements).then(() => {
-                    alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
-                    triggerAutoPopupAnnouncement(newAnnounce);
-                    renderContent();
-                });
-            } else {
-                alert("បានបន្ថែមជោគជ័យ!");
+            saveGlobalAnnouncements(appData.announcements, () => {
+                alert("បានបន្ថែម និង Broadcast ទៅកាន់គ្រប់ Telegram App ទាំងអស់ជោគជ័យ!");
+                triggerAutoPopupAnnouncement(newAnnounce);
                 renderContent();
-            }
+            });
         }
 
         function deleteAnnouncement(id) {
             if (confirm("តើអ្នកចង់លុបសេចក្តីជូនដំណឹងនេះមែនទេ?")) {
                 appData.announcements = appData.announcements.filter(item => item.id !== id);
-                if (db) {
-                    db.ref('global_announcements').set(appData.announcements).then(() => {
-                        renderContent();
-                    });
-                } else {
+                saveGlobalAnnouncements(appData.announcements, () => {
                     renderContent();
-                }
+                });
             }
         }
 
@@ -1105,7 +1167,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         // --- 7. SETTINGS TAB ---
@@ -1134,7 +1196,7 @@
                     </div>
                 </div>
             `;
-            try { lucide.createIcons(); } catch(e){}
+            lucide.createIcons();
         }
 
         function saveSettings(e) {
@@ -1156,7 +1218,6 @@
 
         function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
 
-        // Initialize App directly on load
         initApp();
     </script>
 </body>
